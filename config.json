@@ -6,7 +6,7 @@
       "settings": {
         "clients": [
           {
-            "id": "ba0e3984-ccc9-48a3-8074-b2f507f41ce8",
+            "id": "9c910024-714e-4221-81c6-41ca9856e7ab",
             "level": 0
           }
         ],
@@ -16,7 +16,7 @@
         "network": "ws",
         "security": "none",
         "wsSettings": {
-          "path": "/tg-@nkka404"
+          "path": "/tg-@trenzych"
         }
       }
     }
