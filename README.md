@@ -144,7 +144,7 @@ This project is licensed under the **MIT License**.
 
 ## 👤 Author
 
-Made with ❤️ by [TRENZYCH](https://t.me/trenzych
+Made with ❤️ by [TRENZYCH](https://t.me/trenzych)
 
 ---
 
