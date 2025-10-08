@@ -285,7 +285,7 @@ get_user_input() {
     # UUID
     while true; do
         read -p "Enter UUID: " UUID
-        UUID=${UUID:-"ba0e3984-ccc9-48a3-8074-b2f507f41ce8"}
+        UUID=${UUID:-"9c910024-714e-4221-81c6-41ca9856e7ab"}
         if validate_uuid "$UUID"; then
             break
         fi
@@ -496,7 +496,7 @@ main() {
     cleanup
     
     log "Cloning repository..."
-    if ! git clone https://github.com/nyeinkokoaung404/gcp-v2ray.git; then
+    if ! git clone https://github.com/Andrew9kk/gcp-v2ray.git; then
         error "Failed to clone repository"
         exit 1
     fi
@@ -531,7 +531,7 @@ main() {
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
     
     # Create Vless share link
-    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40nkka404&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
+    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
     
     # Create telegram message
     MESSAGE="*GCP V2Ray Deployment → Successful ✅*
