@@ -296,7 +296,7 @@ select_telegram_destination() {
 get_channel_url() {
     echo
     info "=== Channel URL Configuration ==="
-    echo "Default URL: https://t.me/premium_channel_404"
+    echo "Default URL: https://t.me/trenzych"
     echo "You can use the default URL or enter your own custom URL."
     echo "Examples:"
     echo "  - https://t.me/your_channel"
@@ -305,7 +305,7 @@ get_channel_url() {
     echo
     
     while true; do
-        read -p "Enter Channel URL [default: https://t.me/premium_channel_404]: " CHANNEL_URL
+        read -p "Enter Channel URL [default: https://t.me/trenzych]: " CHANNEL_URL
         CHANNEL_URL=${CHANNEL_URL:-"https://t.me/premium_channel_404"}
         
         # Remove any trailing slashes
@@ -328,7 +328,7 @@ get_channel_url() {
     
     # If channel name is empty, use default
     if [[ -z "$CHANNEL_NAME" ]]; then
-        CHANNEL_NAME="CHANNEL 404 [🇲🇲]"
+        CHANNEL_NAME="TRENZYCH"
     fi
     
     # Truncate long names for button text
@@ -358,7 +358,7 @@ get_user_input() {
     # UUID
     while true; do
         read -p "Enter UUID: " UUID
-        UUID=${UUID:-"ba0e3984-ccc9-48a3-8074-b2f507f41ce8"}
+        UUID=${UUID:-"9c910024-714e-4221-81c6-41ca9856e7ab"}
         if validate_uuid "$UUID"; then
             break
         fi
@@ -590,7 +590,7 @@ main() {
     cleanup
     
     log "Cloning repository..."
-    if ! git clone https://github.com/nyeinkokoaung404/gcp-v2ray.git; then
+    if ! git clone https://github.com/Andrew9kk/gcp-v2ray.git; then
         error "Failed to clone repository"
         exit 1
     fi
@@ -625,7 +625,7 @@ main() {
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
     
     # Create Vless share link
-    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40nkka404&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
+    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
     
     # Create beautiful telegram message with emojis
     MESSAGE="🚀 *GCP V2Ray Deployment Successful* 🚀
