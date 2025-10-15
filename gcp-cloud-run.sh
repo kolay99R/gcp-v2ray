@@ -345,17 +345,6 @@ show_config_summary() {
     done
 }
 
-# Timezone setup
-export TZ="Asia/Yangon"
-START_EPOCH="$(date +%s)"
-END_EPOCH="$(( START_EPOCH + 5*3600 ))"
-fmt_dt(){ date -d @"$1" "+%d.%m.%Y %I:%M %p"; }
-START_LOCAL="$(fmt_dt "$START_EPOCH")"
-END_LOCAL="$(fmt_dt "$END_EPOCH")"
-kv "Start:" "${START_LOCAL}"
-kv "End:"   "${END_LOCAL}"
-    
-
 # Validation functions
 validate_prerequisites() {
     log "Validating prerequisites..."
@@ -507,7 +496,7 @@ main() {
     cleanup
     
     log "Cloning repository..."
-    if ! git clone https://github.com/andrewzinkyaw/gcp-v2ray.git; then
+    if ! git clone https://github.com/Andrew9kk/gcp-v2ray.git; then
         error "Failed to clone repository"
         exit 1
     fi
@@ -538,44 +527,53 @@ main() {
         --region ${REGION} \
         --format 'value(status.url)' \
         --quiet)
-    
-    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
-    
-    # Create Vless share link
-    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
-    
-    # Create telegram message
-    MESSAGE="*GCP VLESS Deploy Success*
-━━━━━━━━━━━━━━━━━━━━
-• *Service:* \`${SERVICE_NAME}\`
-• *Region:* \`${REGION}\`
-• *Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
-• *Domain:* \`${DOMAIN}\`
 
-🔗 *V2Ray Configuration Link*
+    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
+
+    # 🕒 Calculate Start & End Time (UTC + Local)
+    START_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+    END_TIME=$(date -d "$START_TIME + 5 hours" +"%Y-%m-%d %H:%M:%S")
+
+    # VLESS link
+    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
+
+    # ✅ Telegram Message
+    MESSAGE="*🚀 GCP VLESS Deployment Success*
+━━━━━━━━━━━━━━━━━━━━
+*Project:* \`${PROJECT_ID}\`
+*Service:* \`${SERVICE_NAME}\`
+*Region:* \`${REGION}\`
+*Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
+*Domain:* \`${DOMAIN}\`
+
+🕒 *Start Time:* \`${START_TIME}\`
+⏰ *End Time:* \`${END_TIME}\`
+
+🔗 *V2Ray Configuration Link:*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote>🕒 <b>Start:</b> ${START_LOCAL}
-⏳ <b>End:</b> ${END_LOCAL}</blockquote>"
+_Imported by GCP V2Ray Auto Script_"
 
-    # Create console message
-    CONSOLE_MESSAGE="GCP V2Ray Deployment → Successful ✅
+    # ✅ Console Output Message
+    CONSOLE_MESSAGE="GCP Vless Deployment → Successful ✅
 ━━━━━━━━━━━━━━━━━━━━
 • Project: ${PROJECT_ID}
 • Service: ${SERVICE_NAME}
 • Region: ${REGION}
 • Resources: ${CPU} CPU | ${MEMORY} RAM
 • Domain: ${DOMAIN}
+• Start Time: ${START_TIME}
+• End Time:   ${END_TIME}
 
 🔗 V2Ray Configuration Link:
 ${VLESS_LINK}
 
 ━━━━━━━━━━━━━━━━━━━━
 Usage: Copy the above link and import to your V2Ray client."
-    
-    # Save to file
+
+# Save to file
     echo "$CONSOLE_MESSAGE" > deployment-info.txt
     log "Deployment info saved to deployment-info.txt"
     
