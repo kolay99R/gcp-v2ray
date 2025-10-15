@@ -481,6 +481,16 @@ main() {
     log "Memory: $MEMORY"
     
     validate_prerequisites
+    # =================== Timezone Setup ===================
+export TZ="Asia/Yangon"
+START_EPOCH="$(date +%s)"
+END_EPOCH="$(( START_EPOCH + 5*3600 ))"
+fmt_dt(){ date -d @"$1" "+%d.%m.%Y %I:%M %p"; }
+START_LOCAL="$(fmt_dt "$START_EPOCH")"
+END_LOCAL="$(fmt_dt "$END_EPOCH")"
+banner "🕒 Step 7 — Deployment Time"
+kv "Start:" "${START_LOCAL}"
+kv "End:"   "${END_LOCAL}"
     
     # Set trap for cleanup
     trap cleanup EXIT
@@ -496,7 +506,7 @@ main() {
     cleanup
     
     log "Cloning repository..."
-    if ! git clone https://github.com/Andrew9kk/gcp-v2ray.git; then
+    if ! git clone https://github.com/andrewzinkyaw/gcp-v2ray.git; then
         error "Failed to clone repository"
         exit 1
     fi
@@ -534,33 +544,34 @@ main() {
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
     
     # Create telegram message
-    MESSAGE="*GCP V2Ray Deployment → Successful ✅*
+    MESSAGE="*GCP V2Ray Deploy Success *
 ━━━━━━━━━━━━━━━━━━━━
-• *Project:* \`${PROJECT_ID}\`
 • *Service:* \`${SERVICE_NAME}\`
 • *Region:* \`${REGION}\`
 • *Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
 • *Domain:* \`${DOMAIN}\`
+• Start:* \`${START_LOCAL}\`
+• End:* \`${END_LOCAL}\`
+━━━━━━━━━━━━━━━━━━━━
 
-🔗 *V2Ray Configuration Link:*
+🔗 *V2Ray Configuration Link*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
-━━━━━━━━━━━━━━━━━━━━"
 
     # Create console message
-    CONSOLE_MESSAGE="GCP V2Ray Deployment → Successful ✅
-━━━━━━━━━━━━━━━━━━━━
-• Project: ${PROJECT_ID}
+    CONSOLE_MESSAGE="GCP V2Ray Deploy Success
+━━━━━━━━━━━━━━━━━━━━ 
 • Service: ${SERVICE_NAME}
 • Region: ${REGION}
 • Resources: ${CPU} CPU | ${MEMORY} RAM
 • Domain: ${DOMAIN}
-
+• Start: ${START_LOCAL}
+• End: ${END_LOCAL}
+━━━━━━━━━━━━━━━━━━━━
 🔗 V2Ray Configuration Link:
 ${VLESS_LINK}
 
-━━━━━━━━━━━━━━━━━━━━
 Usage: Copy the above link and import to your V2Ray client."
     
     # Save to file
