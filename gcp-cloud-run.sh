@@ -540,13 +540,13 @@ main() {
     # ✅ Telegram Message
     MESSAGE="*GCP VLESS Deployment Success*
 ━━━━━━━━━━━━━━━━━━━━
-*Service:* \`${SERVICE_NAME}\`
-*Region:* \`${REGION}\`
-*Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
-*Domain:* \`${DOMAIN}\`
+*• Service:* \`${SERVICE_NAME}\`
+*• Region:* \`${REGION}\`
+*• Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
+*• Domain:* \`${DOMAIN}\`
 
-*Start:* \`${START_TIME}\`
-*End:* \`${END_TIME}\`
+*• Start:* \`${START_TIME}\`
+*• End:* \`${END_TIME}\`
 ━━━━━━━━━━━━━━━━━━━━
 🔗 *V2Ray Configuration Access Key*
 \`\`\`
