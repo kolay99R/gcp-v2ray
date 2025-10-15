@@ -281,17 +281,6 @@ get_user_input() {
             error "Service name cannot be empty"
         fi
     done
-
-    # Timezone Setup 
-export TZ="Asia/Yangon"
-START_EPOCH="$(date +%s)"
-END_EPOCH="$(( START_EPOCH + 5*3600 ))"
-fmt_dt(){ date -d @"$1" "+%d.%m.%Y %I:%M %p"; }
-START_LOCAL="$(fmt_dt "$START_EPOCH")"
-END_LOCAL="$(fmt_dt "$END_EPOCH")"
-banner "🕒 Step 7 — Deployment Time"
-kv "Start:" "${START_LOCAL}"
-kv "End:"   "${END_LOCAL}"
     
     # UUID
     while true; do
@@ -355,6 +344,18 @@ show_config_summary() {
         esac
     done
 }
+
+# Timezone setup
+export TZ="Asia/Yangon"
+START_EPOCH="$(date +%s)"
+END_EPOCH="$(( START_EPOCH + 5*3600 ))"
+fmt_dt(){ date -d @"$1" "+%d.%m.%Y %I:%M %p"; }
+START_LOCAL="$(fmt_dt "$START_EPOCH")"
+END_LOCAL="$(fmt_dt "$END_EPOCH")"
+banner "🕒 Step 7 — Deployment Time"
+kv "Start:" "${START_LOCAL}"
+kv "End:"   "${END_LOCAL}"
+    
 
 # Validation functions
 validate_prerequisites() {
