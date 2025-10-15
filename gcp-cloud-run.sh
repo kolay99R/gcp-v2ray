@@ -548,7 +548,7 @@ main() {
 *Start:* \`${START_TIME}\`
 *End:* \`${END_TIME}\`
 ━━━━━━━━━━━━━━━━━━━━
-🔗 *V2Ray Configuration Link*
+🔗 *V2Ray Configuration Access Key*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
