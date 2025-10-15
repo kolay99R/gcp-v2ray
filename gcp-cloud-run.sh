@@ -481,7 +481,7 @@ main() {
     log "Memory: $MEMORY"
     
     validate_prerequisites
-    # =================== Timezone Setup ===================
+    # Timezone Setup 
 export TZ="Asia/Yangon"
 START_EPOCH="$(date +%s)"
 END_EPOCH="$(( START_EPOCH + 5*3600 ))"
@@ -552,7 +552,7 @@ kv "End:"   "${END_LOCAL}"
 • *Domain:* \`${DOMAIN}\`
 • Start:* \`${START_LOCAL}\`
 • End:* \`${END_LOCAL}\`
-━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━"
 
 🔗 *V2Ray Configuration Link*
 \`\`\`
@@ -568,7 +568,7 @@ ${VLESS_LINK}
 • Domain: ${DOMAIN}
 • Start: ${START_LOCAL}
 • End: ${END_LOCAL}
-━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━"
 🔗 V2Ray Configuration Link:
 ${VLESS_LINK}
 
