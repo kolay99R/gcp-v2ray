@@ -352,7 +352,6 @@ END_EPOCH="$(( START_EPOCH + 5*3600 ))"
 fmt_dt(){ date -d @"$1" "+%d.%m.%Y %I:%M %p"; }
 START_LOCAL="$(fmt_dt "$START_EPOCH")"
 END_LOCAL="$(fmt_dt "$END_EPOCH")"
-"🕒 Step 7 — Deployment Time"
 kv "Start:" "${START_LOCAL}"
 kv "End:"   "${END_LOCAL}"
     
