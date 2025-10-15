@@ -530,9 +530,9 @@ main() {
 
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
 
-    # 🕒 Calculate Start & End Time (UTC + Local)
-    START_TIME=$(date +"%Y-%m-%d %H:%M:%S")
-    END_TIME=$(date -d "$START_TIME + 5 hours" +"%Y-%m-%d %H:%M:%S")
+    # 🕒 Calculate Start & End Time (Myanmar Time)
+    START_TIME=$(TZ='Asia/Yangon' date +"%Y-%m-%d %H:%M:%S")
+    END_TIME=$(TZ='Asia/Yangon' date -d "$START_TIME + 5 hours" +"%Y-%m-%d %H:%M:%S")
 
     # VLESS link
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
@@ -540,32 +540,31 @@ main() {
     # ✅ Telegram Message
     MESSAGE="*🚀 GCP VLESS Deployment Success*
 ━━━━━━━━━━━━━━━━━━━━
-*Project:* \`${PROJECT_ID}\`
 *Service:* \`${SERVICE_NAME}\`
 *Region:* \`${REGION}\`
 *Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
 *Domain:* \`${DOMAIN}\`
 
-🕒 *Start Time:* \`${START_TIME}\`
-⏰ *End Time:* \`${END_TIME}\`
+🕒 *Start Time (MMT):* \`${START_TIME}\`
+⏰ *End Time (MMT):* \`${END_TIME}\`
 
-🔗 *V2Ray Configuration Link:*
+🔗 *V2Ray Configuration Link*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
 ━━━━━━━━━━━━━━━━━━━━
-_Imported by GCP V2Ray Auto Script_"
+_Imported by TRENZYCH CloudRun Auto Script_"
 
     # ✅ Console Output Message
-    CONSOLE_MESSAGE="GCP Vless Deployment → Successful ✅
+    CONSOLE_MESSAGE="GCP VLESS Deployment → Success ✅
 ━━━━━━━━━━━━━━━━━━━━
 • Project: ${PROJECT_ID}
 • Service: ${SERVICE_NAME}
 • Region: ${REGION}
 • Resources: ${CPU} CPU | ${MEMORY} RAM
 • Domain: ${DOMAIN}
-• Start Time: ${START_TIME}
-• End Time:   ${END_TIME}
+• Start Time (MMT): ${START_TIME}
+• End Time (MMT):   ${END_TIME}
 
 🔗 V2Ray Configuration Link:
 ${VLESS_LINK}
