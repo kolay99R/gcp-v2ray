@@ -533,8 +533,8 @@ main() {
     # 🕒 Start time (MMT)
 START_TIME=$(TZ='Asia/Yangon' date +"%Y-%m-%d %H:%M:%S")
 
-# ⏰ End time (Start + 5 hours, MMT)
-END_TIME=$(TZ='Asia/Yangon' date -d "$START_TIME + 5 hours" +"%Y-%m-%d %H:%M:%S")
+# ⏰ End time = 5 hours from now (MMT)
+END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
 
     # VLESS link
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
