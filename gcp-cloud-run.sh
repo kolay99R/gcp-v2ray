@@ -538,22 +538,21 @@ main() {
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
     # ✅ Telegram Message
-    MESSAGE="*🚀 GCP VLESS Deployment Success*
+    MESSAGE="*GCP VLESS Deployment Success*
 ━━━━━━━━━━━━━━━━━━━━
 *Service:* \`${SERVICE_NAME}\`
 *Region:* \`${REGION}\`
 *Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
 *Domain:* \`${DOMAIN}\`
 
-🕒 *Start Time (MMT):* \`${START_TIME}\`
-⏰ *End Time (MMT):* \`${END_TIME}\`
-
+*Start:* \`${START_TIME}\`
+*End:* \`${END_TIME}\`
+━━━━━━━━━━━━━━━━━━━━
 🔗 *V2Ray Configuration Link*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
-━━━━━━━━━━━━━━━━━━━━
-_Imported by TRENZYCH CloudRun Auto Script_"
+_Usage: Copy the above link and import to your V2Ray client_"
 
     # ✅ Console Output Message
     CONSOLE_MESSAGE="GCP VLESS Deployment → Success ✅
