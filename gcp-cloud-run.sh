@@ -496,7 +496,7 @@ main() {
     cleanup
     
     log "Cloning repository..."
-    if ! git clone https://github.com/Andrew9kk/gcp-v2ray.git; then
+    if ! git clone https://github.com/andrewzinkyaw/gcp-v2ray.git; then
         error "Failed to clone repository"
         exit 1
     fi
