@@ -559,13 +559,12 @@ ${VLESS_LINK}
 Usage: Copy the above link and import to your V2Ray client"
 
 # ✅ Send to Telegram (MarkdownV2)
-curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-  -d "chat_id=${CHAT_ID}" \
+curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+  -d "chat_id=${TELEGRAM_CHAT_ID}" \
   -d "text=${MESSAGE}" \
   -d "parse_mode=MarkdownV2" \
   -d "disable_web_page_preview=true" \
   -d "reply_markup={\"inline_keyboard\":[[{\"text\":\"📋 COPY CODE\",\"url\":\"https://t.me/share/url?url=${VLESS_LINK}\"}]]}"
-
     # ✅ Console Output Message
     CONSOLE_MESSAGE="GCP VLESS Deployment → Success ✅
 ━━━━━━━━━━━━━━━━━━━━
