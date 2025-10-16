@@ -534,7 +534,7 @@ DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
 
 START_TIME=$(TZ='Asia/Yangon' date +"%Y-%m-%d %H:%M:%S")
 
-⏰ End time = 5 hours from now (MMT)
+#⏰ End time = 5 hours from now (MMT)
 
 END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
 
