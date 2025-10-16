@@ -554,7 +554,7 @@ MESSAGE=" *GCP VLESS Deployment Success*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
-Usage: Copy the above link and import to your V2Ray client"
+_Usage: Copy the above link and import to your V2Ray client_"
 
 # ✅ Send to Telegram (MarkdownV2)
 curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
