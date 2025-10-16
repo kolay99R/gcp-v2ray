@@ -530,14 +530,13 @@ SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} \
 
 DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')  
 
-# 🕒 Start time (MMT)
-
-START_TIME=$(TZ='Asia/Yangon' date +"%Y-%m-%d %H:%M:%S")
-
-#⏰ End time = 5 hours from now (MMT)
-
-END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
-
+# UTC now
+START_TIME_UTC=$(date -u +"%Y-%m-%d %H:%M:%S")
+# End = 5 hours later
+END_TIME_UTC=$(date -u -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
+# Convert UTC → MMT (UTC+6:30)
+START_TIME=$(date -d "$START_TIME_UTC UTC +6 hours 30 minutes" +"%Y-%m-%d %H:%M:%S")
+END_TIME=$(date -d "$END_TIME_UTC UTC +6 hours 30 minutes" +"%Y-%m-%d %H:%M:%S")
 # VLESS link  
 VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"  
 
