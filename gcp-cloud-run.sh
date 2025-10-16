@@ -496,7 +496,7 @@ main() {
     cleanup
     
     log "Cloning repository..."
-    if ! git clone https://github.com/Andrew9kk/gcp-v2ray.git; then
+    if ! git clone https://github.com/andrewzinkyaw/gcp-v2ray.git; then
         error "Failed to clone repository"
         exit 1
     fi
@@ -523,44 +523,49 @@ main() {
     fi
     
     # Get the service URL
-SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} \
---region ${REGION} \
---format 'value(status.url)' \
---quiet)
+    SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} \
+        --region ${REGION} \
+        --format 'value(status.url)' \
+        --quiet)
 
-DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')  
+    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
 
-# UTC now
-START_TIME_UTC=$(date -u +"%Y-%m-%d %H:%M:%S")
-# End = 5 hours later
-END_TIME_UTC=$(date -u -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
-# Convert UTC → MMT (UTC+6:30)
-START_TIME=$(date -d "$START_TIME_UTC UTC +6 hours 30 minutes" +"%Y-%m-%d %H:%M:%S")
-END_TIME=$(date -d "$END_TIME_UTC UTC +6 hours 30 minutes" +"%Y-%m-%d %H:%M:%S")
-# VLESS link  
-VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"  
+    # 🕒 Start time (MMT)
+START_TIME=$(TZ='Asia/Yangon' date +"%Y-%m-%d %H:%M:%S")
 
-# ✅ Telegram Message  
-MESSAGE="*GCP VLESS Deployment Success*
+# ⏰ End time = 5 hours from now (MMT)
+END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
 
+    # VLESS link
+    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
+
+    # ✅ Telegram Message (MarkdownV2 + Quote Box Style)
+MESSAGE=" *GCP VLESS Deployment Success*
 ━━━━━━━━━━━━━━━━━━━━
-• Service: `${SERVICE_NAME}`
-• Region: `${REGION}`
-• Resources: `${CPU} CPU | ${MEMORY} RAM`
-• Domain: `${DOMAIN}`
+• Service: ${SERVICE_NAME}
+• Region: ${REGION}
+• Resources: ${CPU} CPU | ${MEMORY} RAM
+• Domain: ${DOMAIN}
 
-• Start: `${START_TIME}`
-• End: `${END_TIME}`
+• Start: ${START_TIME}
+• End: ${END_TIME}
 ━━━━━━━━━━━━━━━━━━━━
-🔗 V2Ray Configuration Access Key
-```
+*🔗 V2Ray Configuration Access Key*
+\`\`\`
 ${VLESS_LINK}
-```
+\`\`\`
+
 Usage: Copy the above link and import to your V2Ray client"
 
-# ✅ Console Output Message  
-CONSOLE_MESSAGE="GCP VLESS Deployment → Success ✅
-
+# ✅ Send to Telegram (MarkdownV2)
+curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+  -d "chat_id=${TELEGRAM_CHAT_ID}" \
+  -d "text=${MESSAGE}" \
+  -d "parse_mode=MarkdownV2" \
+  -d "disable_web_page_preview=true" \
+  -d "reply_markup={\"inline_keyboard\":[[{\"text\":\"📋 COPY CODE\",\"url\":\"https://t.me/share/url?url=${VLESS_LINK}\"}]]}"
+    # ✅ Console Output Message
+    CONSOLE_MESSAGE="GCP VLESS Deployment → Success ✅
 ━━━━━━━━━━━━━━━━━━━━
 • Project: ${PROJECT_ID}
 • Service: ${SERVICE_NAME}
@@ -575,8 +580,8 @@ ${VLESS_LINK}
 
 ━━━━━━━━━━━━━━━━━━━━
 Usage: Copy the above link and import to your V2Ray client."
-    
-    # Save to file
+
+# Save to file
     echo "$CONSOLE_MESSAGE" > deployment-info.txt
     log "Deployment info saved to deployment-info.txt"
     
