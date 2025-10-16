@@ -539,22 +539,32 @@ END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%Y-%m-%d %H:%M:%S")
     # VLESS link
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
-    # ✅ Telegram Message
-    MESSAGE="*GCP VLESS Deployment Success*
-━━━━━━━━━━━━━━━━━━━━
-*• Service:* \`${SERVICE_NAME}\`
-*• Region:* \`${REGION}\`
-*• Resources:* \`${CPU} CPU | ${MEMORY} RAM\`
-*• Domain:* \`${DOMAIN}\`
+    # ✅ Telegram Message (MarkdownV2 + Quote Box Style)
+MESSAGE="> *GCP VLESS Deployment Success*
+\`\`\`
+• Service: ${SERVICE_NAME}
+• Region: ${REGION}
+• Resources: ${CPU} CPU | ${MEMORY} RAM
+• Domain: ${DOMAIN}
 
-*• Start:* \`${START_TIME}\`
-*• End:* \`${END_TIME}\`
-━━━━━━━━━━━━━━━━━━━━
-🔗 *V2Ray Configuration Access Key*
+• Start: ${START_TIME}
+• End: ${END_TIME}
+\`\`\`
+
+> *🔗 V2Ray Configuration Access Key*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
-_Usage: Copy the above link and import to your V2Ray client_"
+
+Usage: Copy the above link and import to your V2Ray client"
+
+# ✅ Send to Telegram (MarkdownV2)
+curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+  -d "chat_id=${CHAT_ID}" \
+  -d "text=${MESSAGE}" \
+  -d "parse_mode=MarkdownV2" \
+  -d "disable_web_page_preview=true" \
+  -d "reply_markup={\"inline_keyboard\":[[{\"text\":\"📋 COPY CODE\",\"url\":\"https://t.me/share/url?url=${VLESS_LINK}\"}]]}"
 
     # ✅ Console Output Message
     CONSOLE_MESSAGE="GCP VLESS Deployment → Success ✅
