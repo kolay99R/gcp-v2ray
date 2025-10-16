@@ -550,11 +550,11 @@ MESSAGE=" *GCP VLESS Deployment Success*
 *• Start:* \`${START_TIME}\`
 *• End:* \`${END_TIME}\`
 ━━━━━━━━━━━━━━━━━━━━
-*🔗 V2Ray Configuration Access Key*
+*V2Ray Configuration Access Key:*
 \`\`\`
 ${VLESS_LINK}
 \`\`\`
-_Usage: Copy the above link and import to your V2Ray client_"
+_Usage: Copy the above link and import to your V2Ray client App_"
 
 # ✅ Send to Telegram (MarkdownV2)
 curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
