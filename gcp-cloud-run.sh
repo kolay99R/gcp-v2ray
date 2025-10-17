@@ -195,9 +195,10 @@ main() {
 <b>• Region:</b> <pre>${REGION}</pre>
 <b>• Resource:</b> <pre>${CPU} CPU | ${MEMORY} RAM</pre>
 <b>• Domain:</b> <pre>${DOMAIN}</pre></blockquote>
-━━━━━━━━━━━━━━━━━━━━
+
 <blockquote><b>• Start:</b> <pre>${START_TIME}</pre>
 <b>• End:</b> <pre>${END_TIME}</pre></blockquote>
+━━━━━━━━━━━━━━━━━━━━
 <b>V2Ray Configuration Access Key</b>
 ━━━━━━━━━━━━━━━━━━━━
 <pre><code>${VLESS_LINK}</code></pre>
