@@ -131,7 +131,7 @@ get_user_input() {
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_channel_url
 }
 
-# Deployment notification
+# Send Telegram notification
 send_to_telegram() {
     local chat_id="$1"; local message="$2"
     local keyboard=$(cat <<EOF
@@ -153,13 +153,36 @@ main() {
     
     log "Starting deployment..."
     
+    # Enable APIs
+    gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
+    
+    # Clone repo
+    rm -rf gcp-v2ray
+    git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
+    cd gcp-v2ray
+    
+    # Build image
+    gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image --quiet
+    
+    # Deploy to Cloud Run
+    gcloud run deploy ${SERVICE_NAME} \
+        --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
+        --platform managed \
+        --region ${REGION} \
+        --allow-unauthenticated \
+        --cpu ${CPU} \
+        --memory ${MEMORY} \
+        --quiet
+    
+    # Get real Service URL after deployment
+    SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
+    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
+    
     # Time
     START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
     END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
     
     # VLESS link
-    SERVICE_URL="example.com" # placeholder, replace with actual after deployment
-    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
     
     # Telegram HTML message
@@ -189,6 +212,7 @@ EOF
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && send_to_telegram "${TELEGRAM_CHAT_ID:-$TELEGRAM_CHANNEL_ID}" "$MESSAGE"
     
     log "Deployment completed!"
+    log "Service URL: $SERVICE_URL"
 }
 
 main "$@"
