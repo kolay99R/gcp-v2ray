@@ -189,7 +189,7 @@ main() {
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
     MESSAGE=$(cat <<EOF
-<b>MYTEL GCP VLESS DEPLOYMENT</b>
+<b>MYTEL GCP VLESS Deployment</b>
 ━━━━━━━━━━━━━━━━━━━━
 <blockquote><b>• Service:</b> <pre>${SERVICE_NAME}</pre>
 <b>• Region:</b> <pre>${REGION}</pre>
