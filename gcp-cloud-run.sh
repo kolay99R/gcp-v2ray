@@ -1,8 +1,7 @@
 #!/bin/bash
-
 set -euo pipefail
 
-# Colors for output
+# ===== Colors =====
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -14,37 +13,28 @@ warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 
-# Function to validate UUID format
+# ===== Validators =====
 validate_uuid() {
     local uuid_pattern='^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     [[ $1 =~ $uuid_pattern ]] || { error "Invalid UUID format: $1"; return 1; }
 }
 
-# Function to validate Telegram Bot Token
 validate_bot_token() {
     local token_pattern='^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$'
     [[ $1 =~ $token_pattern ]] || { error "Invalid Telegram Bot Token format"; return 1; }
 }
 
-# Function to validate Channel ID
-validate_channel_id() { [[ $1 =~ ^-?[0-9]+$ ]] || { error "Invalid Channel ID"; return 1; }; }
+validate_channel_id() { [[ $1 =~ ^-?[0-9]+$ ]] || { error "Invalid Channel ID"; return 1; } }
+validate_chat_id() { [[ $1 =~ ^-?[0-9]+$ ]] || { error "Invalid Chat ID"; return 1; } }
 
-# Function to validate Chat ID
-validate_chat_id() { [[ $1 =~ ^-?[0-9]+$ ]] || { error "Invalid Chat ID"; return 1; }; }
-
-# Function to validate URL
 validate_url() {
     local url="$1"
-    local url_pattern='^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[a-zA-Z0-9._~:/?#[\]@!$&'"'"'()*+,;=-]*)?$'
-    local telegram_pattern='^https?://t\.me/[a-zA-Z0-9_]+$'
-    if [[ "$url" =~ $telegram_pattern ]] || [[ "$url" =~ $url_pattern ]]; then
-        return 0
-    else
-        error "Invalid URL: $url"; return 1
-    fi
+    local url_pattern='^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[a-zA-Z0-9.~:/?#@!$&'"'"'()+,;=-]*)?$'
+    local telegram_pattern='^https?://t.me/[a-zA-Z0-9_]+$'
+    [[ "$url" =~ $telegram_pattern || "$url" =~ $url_pattern ]] || { error "Invalid URL: $url"; return 1; }
 }
 
-# CPU selection
+# ===== CPU & Memory selection =====
 select_cpu() {
     echo; info "=== CPU Configuration ==="
     echo "1. 1 CPU Core (Default)"; echo "2. 2 CPU Cores"; echo "3. 4 CPU Cores"; echo "4. 8 CPU Cores"
@@ -58,7 +48,6 @@ select_cpu() {
     info "Selected CPU: $CPU core(s)"
 }
 
-# Memory selection
 select_memory() {
     echo; info "=== Memory Configuration ==="
     echo "Memory Options: 1.512Mi 2.1Gi 3.2Gi 4.4Gi 5.8Gi 6.16Gi"
@@ -73,7 +62,6 @@ select_memory() {
     info "Selected Memory: $MEMORY"
 }
 
-# Region selection
 select_region() {
     echo; info "=== Region Selection ==="
     echo "1.us-central1 2.us-west1 3.us-east1 4.europe-west1 5.asia-southeast1 6.asia-southeast2 7.asia-northeast1 8.asia-east1"
@@ -89,7 +77,7 @@ select_region() {
     info "Selected region: $REGION"
 }
 
-# Telegram destination
+# ===== Telegram configuration =====
 select_telegram_destination() {
     echo; info "=== Telegram Destination ==="
     echo "1.Channel 2.Bot 3.Both 4.None"
@@ -105,7 +93,6 @@ select_telegram_destination() {
     done
 }
 
-# Channel URL input
 get_channel_url() {
     echo; info "=== Channel Configuration ==="
     echo "Default URL: https://t.me/trenzych"
@@ -119,7 +106,22 @@ get_channel_url() {
     CHANNEL_NAME=${CHANNEL_NAME:-"TRENZYCH"}
 }
 
-# User input
+get_telegram_ids() {
+    if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
+        while true; do
+            read -p "Enter Telegram Chat ID (bot): " TELEGRAM_CHAT_ID
+            validate_chat_id "$TELEGRAM_CHAT_ID" && break
+        done
+    fi
+    if [[ "$TELEGRAM_DESTINATION" == "channel" || "$TELEGRAM_DESTINATION" == "both" ]]; then
+        while true; do
+            read -p "Enter Telegram Channel ID (number with -100 prefix): " TELEGRAM_CHANNEL_ID
+            validate_channel_id "$TELEGRAM_CHANNEL_ID" && break
+        done
+    fi
+}
+
+# ===== User input =====
 get_user_input() {
     echo; info "=== Service Configuration ==="
     while true; do read -p "Enter service name: " SERVICE_NAME; [[ -n "$SERVICE_NAME" ]] && break; done
@@ -129,9 +131,10 @@ get_user_input() {
     fi
     read -p "Enter host domain [default: m.googleapis.com]: " HOST_DOMAIN; HOST_DOMAIN=${HOST_DOMAIN:-"m.googleapis.com"}
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_channel_url
+    [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_telegram_ids
 }
 
-# Send Telegram notification
+# ===== Telegram send =====
 send_to_telegram() {
     local chat_id="$1"; local message="$2"
     local keyboard=$(cat <<EOF
@@ -139,31 +142,34 @@ send_to_telegram() {
 EOF
 )
     response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" \
-        -d "{\"chat_id\":\"${chat_id}\",\"text\":\"$message\",\"parse_mode\":\"HTML\",\"disable_web_page_preview\":true,\"reply_markup\":$keyboard}" \
-        https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage)
+        -d "{\"chat_id\":\"${chat_id}\",\"text\":\"${message}\",\"parse_mode\":\"HTML\",\"disable_web_page_preview\":true,\"reply_markup\":$keyboard}" \
+        "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage")
     [[ "${response: -3}" == "200" ]] || { error "Telegram send failed: ${response}"; return 1; }
 }
 
-# Main function
+# ===== Main deployment =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
-    select_region; select_cpu; select_memory; select_telegram_destination; get_user_input
-    
+    select_region
+    select_cpu
+    select_memory
+    select_telegram_destination
+    get_user_input
+
     PROJECT_ID=$(gcloud config get-value project)
-    
     log "Starting deployment..."
-    
+
     # Enable APIs
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
-    
+
     # Clone repo
     rm -rf gcp-v2ray
     git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
     cd gcp-v2ray
-    
+
     # Build image
     gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image --quiet
-    
+
     # Deploy to Cloud Run
     gcloud run deploy ${SERVICE_NAME} \
         --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
@@ -173,19 +179,15 @@ main() {
         --cpu ${CPU} \
         --memory ${MEMORY} \
         --quiet
-    
-    # Get real Service URL after deployment
+
     SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
-    
-    # Time
+
     START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
     END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
-    
-    # VLESS link
+
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
-    
-    # Telegram HTML message
+
     MESSAGE=$(cat <<EOF
 <b>MYTEL GCP VLESS DEPLOYMENT</b>
 ━━━━━━━━━━━━━━━━━━━━
@@ -193,9 +195,7 @@ main() {
 <b>• Service:</b> ${SERVICE_NAME}
 <b>• Region:</b> ${REGION}
 <b>• Resource:</b> ${CPU} CPU | ${MEMORY} RAM
-<b>• Domain:</b> ${DOMAIN}
-
-<b>• Start:</b> ${START_TIME}
+<b>• Domain:</b> ${DOMAIN}  <b>• Start:</b> ${START_TIME}
 <b>• End:</b> ${END_TIME}
 </blockquote>
 ━━━━━━━━━━━━━━━━━━━━
@@ -205,12 +205,17 @@ main() {
 <i>Usage: Copy the above link and import to your V2Ray client App</i>
 EOF
 )
-    
     echo "$MESSAGE" > deployment-info.txt
     info "Deployment info saved to deployment-info.txt"
-    
-    [[ "$TELEGRAM_DESTINATION" != "none" ]] && send_to_telegram "${TELEGRAM_CHAT_ID:-$TELEGRAM_CHANNEL_ID}" "$MESSAGE"
-    
+
+    # Send Telegram
+    if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
+        send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE"
+    fi
+    if [[ "$TELEGRAM_DESTINATION" == "channel" || "$TELEGRAM_DESTINATION" == "both" ]]; then
+        send_to_telegram "$TELEGRAM_CHANNEL_ID" "$MESSAGE"
+    fi
+
     log "Deployment completed!"
     log "Service URL: $SERVICE_URL"
 }
