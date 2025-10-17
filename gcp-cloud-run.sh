@@ -191,17 +191,16 @@ main() {
     MESSAGE=$(cat <<EOF
 <b>MYTEL GCP VLESS DEPLOYMENT</b>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote>
-<b>• Service:</b> ${SERVICE_NAME}
+<blockquote><b>• Service:</b> ${SERVICE_NAME}
 <b>• Region:</b> ${REGION}
 <b>• Resource:</b> ${CPU} CPU | ${MEMORY} RAM
-<b>• Domain:</b> ${DOMAIN}  <b>• Start:</b> ${START_TIME}
-<b>• End:</b> ${END_TIME}
-</blockquote>
+<b>• Domain:</b> ${DOMAIN}</blockquote>
 ━━━━━━━━━━━━━━━━━━━━
+<blockquote><b>• Start:</b> ${START_TIME}
+<b>• End:</b> ${END_TIME}</blockquote>
 <b>V2Ray Configuration Access Key</b>
 ━━━━━━━━━━━━━━━━━━━━
-<code>${VLESS_LINK}</code>
+<pre><code>${VLESS_LINK}</code></pre>
 <i>Usage: Copy the above link and import to your V2Ray client App</i>
 EOF
 )
