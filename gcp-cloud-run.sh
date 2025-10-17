@@ -191,13 +191,13 @@ main() {
     MESSAGE=$(cat <<EOF
 <b>MYTEL GCP VLESS DEPLOYMENT</b>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>• Service:</b> ${SERVICE_NAME}
-<b>• Region:</b> ${REGION}
-<b>• Resource:</b> ${CPU} CPU | ${MEMORY} RAM
-<b>• Domain:</b> ${DOMAIN}</blockquote>
+<blockquote><b>• Service:</b> <pre>${SERVICE_NAME}</pre>
+<b>• Region:</b> <pre>${REGION}</pre>
+<b>• Resource:</b> <pre>${CPU} CPU | ${MEMORY} RAM</pre>
+<b>• Domain:</b> <pre>${DOMAIN}</pre></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>• Start:</b> ${START_TIME}
-<b>• End:</b> ${END_TIME}</blockquote>
+<blockquote><b>• Start:</b> <pre>${START_TIME}</pre>
+<b>• End:</b> <pre>${END_TIME}</pre></blockquote>
 <b>V2Ray Configuration Access Key</b>
 ━━━━━━━━━━━━━━━━━━━━
 <pre><code>${VLESS_LINK}</code></pre>
