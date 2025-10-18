@@ -84,7 +84,7 @@ select_region() {
      2.us-west1  
      3.us-east1  
      4.europe-west1" 
-     echo 
+    echo 
     "5.asia-southeast1  
      6.asia-southeast2  
      7.asia-northeast1  
