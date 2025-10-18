@@ -281,9 +281,6 @@ log "🌍 Service URL: $SERVICE_URL"
     if [[ "$TELEGRAM_DESTINATION" == "channel" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         send_to_telegram "$TELEGRAM_CHANNEL_ID" "$MESSAGE" "channel"
     fi
-
-    log "✅ Deployment completed successfully!"
-    log "🌍 Service URL: $SERVICE_URL"
 }
 
 main "$@"
