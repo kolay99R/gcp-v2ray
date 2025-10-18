@@ -165,10 +165,10 @@ get_user_input() {
 # ===== Telegram send =====
 send_to_telegram() {
     local chat_id="$1"; local message="$2"; local dest_type="$3"
+
     local keyboard=$(cat <<EOF
 {"inline_keyboard":[
-  [{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}],
-  [{"text":"🌐 Open Cloud Run","url":"$SERVICE_URL"}]
+  [{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}]
 ]}
 EOF
 )
@@ -232,10 +232,10 @@ main() {
     MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-<b>• Service:</b> <pre>${SERVICE_NAME}</pre>
-<b>• Region:</b> <pre>${REGION}</pre>
-<b>• Resource:</b> <pre>${CPU} CPU | ${MEMORY} RAM</pre>
-<b>• Domain:</b> <pre>${DOMAIN}</pre>
+<b>• Service:</b> <code>${SERVICE_NAME}</code>
+<b>• Region:</b> <code>${REGION}</code>
+<b>• Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
+<b>• Domain:</b> <code>${DOMAIN}</code>
 ━━━━━━━━━━━━━━━━━━━━
 <blockquote><b>GCP V2Ray Access Key</b></blockquote>
 <pre><code>${VLESS_LINK}</code></pre>
