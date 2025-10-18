@@ -79,8 +79,16 @@ select_memory() {
 
 select_region() {
     echo; info "=== Region Selection ==="
-    echo "1.us-central1  2.us-west1  3.us-east1  4.europe-west1"
-    echo "5.asia-southeast1  6.asia-southeast2  7.asia-northeast1  8.asia-east1"
+    echo 
+    "1.us-central1  
+     2.us-west1  
+     3.us-east1  
+     4.europe-west1" 
+     echo 
+    "5.asia-southeast1  
+     6.asia-southeast2  
+     7.asia-northeast1  
+     8.asia-east1"
     while true; do
         read -p "Select region (1-8): " region_choice
         case $region_choice in
@@ -240,7 +248,7 @@ main() {
 <blockquote><b>GCP V2Ray Access Key</b></blockquote>
 <pre><code>${VLESS_LINK}</code></pre>
 <blockquote><b>• Start:</b> ${START_TIME}
-<b>• End:</b> ${END_TIME}</blockquote>
+<b>• End:</b>   ${END_TIME}</blockquote>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
