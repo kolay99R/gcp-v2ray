@@ -41,7 +41,10 @@ select_cpu() {
     while true; do
         read -p "Select CPU (1-4): " cpu_choice
         case $cpu_choice in
-            1) CPU="1"; break;; 2) CPU="2"; break;; 3) CPU="4"; break;; 4) CPU="8"; break;;
+            1) CPU="1"; break;; 
+            2) CPU="2"; break;; 
+            3) CPU="4"; break;; 
+            4) CPU="8"; break;;
             *) echo "Invalid selection 1-4";;
         esac
     done
@@ -54,8 +57,12 @@ select_memory() {
     while true; do
         read -p "Select memory (1-6): " memory_choice
         case $memory_choice in
-            1) MEMORY="512Mi"; break;; 2) MEMORY="1Gi"; break;; 3) MEMORY="2Gi"; break;;
-            4) MEMORY="4Gi"; break;; 5) MEMORY="8Gi"; break;; 6) MEMORY="16Gi"; break;;
+            1) MEMORY="512Mi"; break;; 
+            2) MEMORY="1Gi"; break;; 
+            3) MEMORY="2Gi"; break;;
+            4) MEMORY="4Gi"; break;; 
+            5) MEMORY="8Gi"; break;; 
+            6) MEMORY="16Gi"; break;;
             *) echo "Invalid 1-6";;
         esac
     done
@@ -68,9 +75,14 @@ select_region() {
     while true; do
         read -p "Select region (1-8): " region_choice
         case $region_choice in
-            1) REGION="us-central1"; break;; 2) REGION="us-west1"; break;; 3) REGION="us-east1"; break;;
-            4) REGION="europe-west1"; break;; 5) REGION="asia-southeast1"; break;; 6) REGION="asia-southeast2"; break;;
-            7) REGION="asia-northeast1"; break;; 8) REGION="asia-east1"; break;;
+            1) REGION="us-central1"; break;; 
+            2) REGION="us-west1"; break;; 
+            3) REGION="us-east1"; break;;
+            4) REGION="europe-west1"; break;; 
+            5) REGION="asia-southeast1"; break;; 
+            6) REGION="asia-southeast2"; break;;
+            7) REGION="asia-northeast1"; break;; 
+            8) REGION="asia-east1"; break;;
             *) echo "Invalid 1-8";;
         esac
     done
@@ -80,7 +92,11 @@ select_region() {
 # ===== Telegram configuration =====
 select_telegram_destination() {
     echo; info "=== Telegram Destination ==="
-    echo "1.Channel 2.Bot 3.Both 4.None"
+    echo "
+    1.Channel 
+    2.Bot 
+    3.Both 
+    4.None"
     while true; do
         read -p "Select destination (1-4): " telegram_choice
         case $telegram_choice in
