@@ -81,14 +81,14 @@ select_region() {
     echo
     info "=== Region Selection ==="
     echo "
-1. us-central1
-2. us-west1
-3. us-east1
-4. europe-west1
-5. asia-southeast1
-6. asia-southeast2
-7. asia-northeast1
-8. asia-east1
+1. us-central1 (Iowa, USA 🇺🇸)
+2. us-west1 (Oregon, USA 🇺🇸)
+3. us-east1 (South Carolina, USA 🇺🇸)
+4. europe-west1 (Belgium 🇧🇪)
+5. asia-southeast1 (Singapore 🇸🇬)
+6. asia-southeast2 (Indonesia 🇮🇩)
+7. asia-northeast1 (Tokyo, Japan 🇯🇵)
+8. asia-east1 (Taiwan 🇹🇼)
 "
     while true; do
         read -p "Select region (1-8): " region_choice
@@ -254,6 +254,26 @@ EOF
 )
     echo "$MESSAGE" > deployment-info.txt
     info "Deployment info saved to deployment-info.txt"
+
+    # === ✅ Console Summary ===
+echo
+echo -e "${GREEN}=== Deployment Summary (Console) ===${NC}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Project: ${PROJECT_ID}"
+echo "Service: ${SERVICE_NAME}"
+echo "Region:  ${REGION}"
+echo "Resource: ${CPU} CPU | ${MEMORY} RAM"
+echo "Domain:  ${DOMAIN}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "VLESS LINK:"
+echo "${VLESS_LINK}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Start: ${START_TIME}"
+echo "End:   ${END_TIME}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo
+log "✅ Deployment completed successfully!"
+log "🌍 Service URL: $SERVICE_URL"
 
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
