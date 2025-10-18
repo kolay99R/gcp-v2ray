@@ -29,7 +29,7 @@ validate_chat_id() { [[ $1 =~ ^-?[0-9]+$ ]] || { error "Invalid Chat ID"; return
 
 validate_url() {
     local url="$1"
-    local url_pattern='^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[a-zA-Z0-9.~:/?#@!$&'"'"'()+,;=-]*)?$'
+    local url_pattern='^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[a-zA-Z0-9.~:/?#@!$&'"'"'()+,;=-]*)?$'
     local telegram_pattern='^https?://t.me/[a-zA-Z0-9_]+$'
     [[ "$url" =~ $telegram_pattern || "$url" =~ $url_pattern ]] || { error "Invalid URL: $url"; return 1; }
 }
@@ -37,15 +37,18 @@ validate_url() {
 # ===== CPU & Memory selection =====
 select_cpu() {
     echo; info "=== CPU Configuration ==="
-    echo "1. 1 CPU Core (Default)"; echo "2. 2 CPU Cores"; echo "3. 4 CPU Cores"; echo "4. 8 CPU Cores"
+    echo "1. 1 CPU Core (Default)"
+    echo "2. 2 CPU Cores"
+    echo "3. 4 CPU Cores"
+    echo "4. 8 CPU Cores"
     while true; do
         read -p "Select CPU (1-4): " cpu_choice
         case $cpu_choice in
-            1) CPU="1"; break;; 
-            2) CPU="2"; break;; 
-            3) CPU="4"; break;; 
+            1) CPU="1"; break;;
+            2) CPU="2"; break;;
+            3) CPU="4"; break;;
             4) CPU="8"; break;;
-            *) echo "Invalid selection 1-4";;
+            *) echo "Invalid selection (1-4)";;
         esac
     done
     info "Selected CPU: $CPU core(s)"
@@ -53,17 +56,22 @@ select_cpu() {
 
 select_memory() {
     echo; info "=== Memory Configuration ==="
-    echo "Memory Options: 1.512Mi 2.1Gi 3.2Gi 4.4Gi 5.8Gi 6.16Gi"
+    echo "1. 512Mi"
+    echo "2. 1Gi"
+    echo "3. 2Gi"
+    echo "4. 4Gi"
+    echo "5. 8Gi"
+    echo "6. 16Gi"
     while true; do
         read -p "Select memory (1-6): " memory_choice
         case $memory_choice in
-            1) MEMORY="512Mi"; break;; 
-            2) MEMORY="1Gi"; break;; 
+            1) MEMORY="512Mi"; break;;
+            2) MEMORY="1Gi"; break;;
             3) MEMORY="2Gi"; break;;
-            4) MEMORY="4Gi"; break;; 
-            5) MEMORY="8Gi"; break;; 
+            4) MEMORY="4Gi"; break;;
+            5) MEMORY="8Gi"; break;;
             6) MEMORY="16Gi"; break;;
-            *) echo "Invalid 1-6";;
+            *) echo "Invalid (1-6)";;
         esac
     done
     info "Selected Memory: $MEMORY"
@@ -71,19 +79,20 @@ select_memory() {
 
 select_region() {
     echo; info "=== Region Selection ==="
-    echo "1.us-central1 2.us-west1 3.us-east1 4.europe-west1 5.asia-southeast1 6.asia-southeast2 7.asia-northeast1 8.asia-east1"
+    echo "1.us-central1  2.us-west1  3.us-east1  4.europe-west1"
+    echo "5.asia-southeast1  6.asia-southeast2  7.asia-northeast1  8.asia-east1"
     while true; do
         read -p "Select region (1-8): " region_choice
         case $region_choice in
-            1) REGION="us-central1"; break;; 
-            2) REGION="us-west1"; break;; 
+            1) REGION="us-central1"; break;;
+            2) REGION="us-west1"; break;;
             3) REGION="us-east1"; break;;
-            4) REGION="europe-west1"; break;; 
-            5) REGION="asia-southeast1"; break;; 
+            4) REGION="europe-west1"; break;;
+            5) REGION="asia-southeast1"; break;;
             6) REGION="asia-southeast2"; break;;
-            7) REGION="asia-northeast1"; break;; 
+            7) REGION="asia-northeast1"; break;;
             8) REGION="asia-east1"; break;;
-            *) echo "Invalid 1-8";;
+            *) echo "Invalid (1-8)";;
         esac
     done
     info "Selected region: $REGION"
@@ -92,11 +101,10 @@ select_region() {
 # ===== Telegram configuration =====
 select_telegram_destination() {
     echo; info "=== Telegram Destination ==="
-    echo "
-    1.Channel 
-    2.Bot 
-    3.Both 
-    4.None"
+    echo "1. Channel"
+    echo "2. Bot"
+    echo "3. Both"
+    echo "4. None"
     while true; do
         read -p "Select destination (1-4): " telegram_choice
         case $telegram_choice in
@@ -104,7 +112,7 @@ select_telegram_destination() {
             2) TELEGRAM_DESTINATION="bot"; break;;
             3) TELEGRAM_DESTINATION="both"; break;;
             4) TELEGRAM_DESTINATION="none"; break;;
-            *) echo "Invalid 1-4";;
+            *) echo "Invalid (1-4)";;
         esac
     done
 }
@@ -118,7 +126,7 @@ get_channel_url() {
         CHANNEL_URL=$(echo "$CHANNEL_URL" | sed 's|/*$||')
         validate_url "$CHANNEL_URL" && break
     done
-    read -p "Enter Channel Name [default:TRENZYCH]: " CHANNEL_NAME
+    read -p "Enter Channel Name [default: TRENZYCH]: " CHANNEL_NAME
     CHANNEL_NAME=${CHANNEL_NAME:-"TRENZYCH"}
 }
 
@@ -141,26 +149,42 @@ get_telegram_ids() {
 get_user_input() {
     echo; info "=== Service Configuration ==="
     while true; do read -p "Enter service name: " SERVICE_NAME; [[ -n "$SERVICE_NAME" ]] && break; done
-    while true; do read -p "Enter UUID: " UUID; UUID=${UUID:-"9c910024-714e-4221-81c6-41ca9856e7ab"}; validate_uuid "$UUID" && break; done
+    while true; do read -p "Enter UUID [default: 9c910024-714e-4221-81c6-41ca9856e7ab]: " UUID
+        UUID=${UUID:-"9c910024-714e-4221-81c6-41ca9856e7ab"}
+        validate_uuid "$UUID" && break
+    done
     if [[ "$TELEGRAM_DESTINATION" != "none" ]]; then
         while true; do read -p "Enter Telegram Bot Token: " TELEGRAM_BOT_TOKEN; validate_bot_token "$TELEGRAM_BOT_TOKEN" && break; done
     fi
-    read -p "Enter host domain [default: m.googleapis.com]: " HOST_DOMAIN; HOST_DOMAIN=${HOST_DOMAIN:-"m.googleapis.com"}
+    read -p "Enter host domain [default: m.googleapis.com]: " HOST_DOMAIN
+    HOST_DOMAIN=${HOST_DOMAIN:-"m.googleapis.com"}
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_channel_url
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_telegram_ids
 }
 
 # ===== Telegram send =====
 send_to_telegram() {
-    local chat_id="$1"; local message="$2"
+    local chat_id="$1"; local message="$2"; local dest_type="$3"
     local keyboard=$(cat <<EOF
-{"inline_keyboard":[[{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}]]}
+{"inline_keyboard":[
+  [{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}],
+  [{"text":"🌐 Open Cloud Run","url":"$SERVICE_URL"}]
+]}
 EOF
 )
     response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" \
         -d "{\"chat_id\":\"${chat_id}\",\"text\":\"${message}\",\"parse_mode\":\"HTML\",\"disable_web_page_preview\":true,\"reply_markup\":$keyboard}" \
         "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage")
-    [[ "${response: -3}" == "200" ]] || { error "Telegram send failed: ${response}"; return 1; }
+
+    if [[ "${response: -3}" == "200" ]]; then
+        if [[ "$dest_type" == "bot" ]]; then
+            log "✅ Sent to your Telegram bot successfully."
+        elif [[ "$dest_type" == "channel" ]]; then
+            log "✅ Sent to Telegram channel successfully."
+        fi
+    else
+        error "❌ Telegram send failed: ${response}"
+    fi
 }
 
 # ===== Main deployment =====
@@ -172,21 +196,22 @@ main() {
     select_telegram_destination
     get_user_input
 
-    PROJECT_ID=$(gcloud config get-value project)
-    log "Starting deployment..."
+    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
+    if [[ -z "$PROJECT_ID" ]]; then
+        error "No GCP project is set. Run: gcloud config set project <PROJECT_ID>"
+        exit 1
+    fi
 
-    # Enable APIs
+    log "Starting deployment for project: $PROJECT_ID"
+
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
 
-    # Clone repo
-    rm -rf gcp-v2ray
+    if [[ -d "gcp-v2ray" ]]; then rm -rf gcp-v2ray; fi
     git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
     cd gcp-v2ray
 
-    # Build image
     gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image --quiet
 
-    # Deploy to Cloud Run
     gcloud run deploy ${SERVICE_NAME} \
         --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
         --platform managed \
@@ -204,7 +229,6 @@ main() {
 
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
-    #Telegram Send Message 
     MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
@@ -217,22 +241,21 @@ main() {
 <pre><code>${VLESS_LINK}</code></pre>
 ━━━━━━━━━━━━━━━━━━━━
 <blockquote><b>• Start:</b> ${START_TIME}
-<b>• End: </b> ${END_TIME}</blockquote>
+<b>• End:</b> ${END_TIME}</blockquote>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
     info "Deployment info saved to deployment-info.txt"
 
-    # Send Telegram
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
-        send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE"
+        send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
     fi
     if [[ "$TELEGRAM_DESTINATION" == "channel" || "$TELEGRAM_DESTINATION" == "both" ]]; then
-        send_to_telegram "$TELEGRAM_CHANNEL_ID" "$MESSAGE"
+        send_to_telegram "$TELEGRAM_CHANNEL_ID" "$MESSAGE" "channel"
     fi
 
-    log "Deployment completed!"
-    log "Service URL: $SERVICE_URL"
+    log "✅ Deployment completed successfully!"
+    log "🌍 Service URL: $SERVICE_URL"
 }
 
 main "$@"
