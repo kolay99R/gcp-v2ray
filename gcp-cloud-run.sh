@@ -188,21 +188,20 @@ main() {
 
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
+    #Telegram Send Message 
     MESSAGE=$(cat <<EOF
-<b>MYTEL GCP VLESS Deployment</b>
+<blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>• Service:</b> ${SERVICE_NAME}
-<b>• Region:</b> ${REGION}
-<b>• Resource:</b> ${CPU} CPU | ${MEMORY} RAM
-<b>• Domain:</b> ${DOMAIN}</blockquote>
-
-<blockquote><b>• Start:</b> ${START_TIME}
-<b>• End:</b> ${END_TIME}</blockquote>
+<b>• Service:</b> <pre>${SERVICE_NAME}</pre>
+<b>• Region:</b> <pre>${REGION}</pre>
+<b>• Resource:</b> <pre>${CPU} CPU | ${MEMORY} RAM</pre>
+<b>• Domain:</b> <pre>${DOMAIN}</pre>
 ━━━━━━━━━━━━━━━━━━━━
-<b>V2Ray Configuration Access Key</b>
-━━━━━━━━━━━━━━━━━━━━
+<blockquote><b>GCP V2Ray Access Key</b></blockquote>
 <pre><code>${VLESS_LINK}</code></pre>
-<i>Usage: Copy the above link and import to your V2Ray client App</i>
+━━━━━━━━━━━━━━━━━━━━
+<blockquote><b>• Start:</b> ${START_TIME}
+<b>• End: </b> ${END_TIME}</blockquote>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
