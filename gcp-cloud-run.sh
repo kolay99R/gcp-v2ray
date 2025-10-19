@@ -269,7 +269,7 @@ main() {
     MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-📌<b> Service:</b> <code>${SERVICE_NAME}</code>
+📦<b> Service:</b> <code>${SERVICE_NAME}</code>
 🌍<b> Region:</b> <code>${REGION}</code>
 ⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
 🔗<b> Domain:</b> <code>${DOMAIN}</code>
@@ -300,7 +300,7 @@ echo "Start: ${START_TIME}"
 echo "End:   ${END_TIME}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
-log "✅ Deployment completed successfully!"
+log "✅ Deployment completed successfully!🎉🎉"
 log "🌍 Service URL: $SERVICE_URL"
 
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
