@@ -195,66 +195,60 @@ EOF
         error "❌ Telegram send failed: ${response}"
     fi
 }
-# ===== Ensure GCP Project =====
-ensure_gcp_project() {
-    info "=== Checking GCP Project Configuration ==="
+check_or_select_project() {
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
-
     if [[ -z "$PROJECT_ID" ]]; then
-        warn "⚠️  No active GCP project is set in your config."
-        echo
-        echo -e "${BLUE}Available projects:${NC}"
-        gcloud projects list --format="table(projectId,name)" 2>/dev/null || true
-        echo
-
-        while true; do
-            read -p "Enter a valid GCP Project ID to use: " PROJECT_ID
-            if gcloud projects describe "$PROJECT_ID" >/dev/null 2>&1; then
-                echo -e "${GREEN}✅ Valid project detected: ${PROJECT_ID}${NC}"
-                break
-            else
-                echo -e "${RED}❌ Invalid project ID. Please try again.${NC}"
-            fi
-        done
-
-        echo
-        echo -e "${YELLOW}Do you want to set ${PROJECT_ID} as your default project? (y/n) [default: y]${NC}"
-        read -rp "> " SET_DEFAULT
-        SET_DEFAULT=${SET_DEFAULT:-y}
-        if [[ "$SET_DEFAULT" =~ ^[Yy]$ ]]; then
-            gcloud config set project "$PROJECT_ID" --quiet
-            log "✅ Default project set: ${PROJECT_ID}"
+        echo; info "No GCP project set. Please select or create one:"
+        PROJECT_LIST=$(gcloud projects list --format="value(projectId)")
+        if [[ -z "$PROJECT_LIST" ]]; then
+            read -p "No projects found. Enter new project ID to create: " NEW_PROJECT
+            gcloud projects create "$NEW_PROJECT"
+            PROJECT_ID="$NEW_PROJECT"
         else
-            warn "Skipping default config. Project will be used for this session only."
+            select proj in $PROJECT_LIST; do
+                PROJECT_ID="$proj"
+                break
+            done
         fi
-    else
-        log "🟢 Current active project: ${PROJECT_ID}"
+        gcloud config set project "$PROJECT_ID"
     fi
+    log "Using GCP project: $PROJECT_ID"
 }
 
-# ===== Main deployment =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
-    
-    # ✅ Ensure project
-    ensure_gcp_project
-    
     select_region
     select_cpu
     select_memory
     select_telegram_destination
     get_user_input
+    check_or_select_project
 
-    log "Starting deployment for project: $PROJECT_ID"
+    # ===== Preview times =====
+    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
+    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
 
+    # ===== Confirm deploy =====
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}💬 Confirm Deployment${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Project:${NC} ${PROJECT_ID}"
+    echo -e "${YELLOW}Service:${NC} ${SERVICE_NAME}"
+    echo -e "${YELLOW}Region:${NC} ${REGION}"
+    echo -e "${YELLOW}CPU:${NC} ${CPU} | ${YELLOW}Memory:${NC} ${MEMORY}"
+    echo -e "${YELLOW}Domain:${NC} ${HOST_DOMAIN}"
+    echo -e "${YELLOW}Start:${NC} ${START_TIME}"
+    echo -e "${YELLOW}End:${NC}   ${END_TIME}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    read -rp "Continue? (y/n) [default: y]: " CONFIRM
+    CONFIRM=${CONFIRM:-y}
+    [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo "Deployment canceled"; exit 0; }
+    
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
 
-    if [[ -d "gcp-v2ray" ]]; then rm -rf gcp-v2ray; fi
+    [[ -d "gcp-v2ray" ]] && rm -rf gcp-v2ray
     git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
     cd gcp-v2ray
-
-    gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image --quiet
-
     gcloud run deploy ${SERVICE_NAME} \
         --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
         --platform managed \
