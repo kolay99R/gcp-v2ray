@@ -196,13 +196,11 @@ EOF
     fi
 }
 check_or_select_project() {
-    # Get current project, if any
-    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
-
     echo
     info "=== GCP Project Configuration ==="
 
-    if [[ -n "$PROJECT_ID" ]]; then
+    # Ask if user wants to use an existing project
+    if [[ -n "${PROJECT_ID:-}" ]]; then
         echo "Current GCP project: $PROJECT_ID"
         read -p "Do you want to use this project? (Y/n): " USE_CURRENT
         USE_CURRENT=${USE_CURRENT:-Y}
@@ -212,38 +210,18 @@ check_or_select_project() {
         fi
     fi
 
-    # Ask user to manually enter project ID
-    read -p "Enter GCP Project ID (or leave empty to select from list): " MANUAL_PROJECT
-    if [[ -n "$MANUAL_PROJECT" ]]; then
-        PROJECT_ID="$MANUAL_PROJECT"
-        # Check if project exists, if not create it
-        if ! gcloud projects describe "$PROJECT_ID" &>/dev/null; then
-            echo "Project does not exist. Creating project $PROJECT_ID..."
-            gcloud projects create "$PROJECT_ID"
-        fi
-        gcloud config set project "$PROJECT_ID"
-        log "Using GCP project: $PROJECT_ID"
-        return
-    fi
-
-    # If manual entry is empty, show selection from existing projects
-    PROJECT_LIST=$(gcloud projects list --format="value(projectId)")
-    if [[ -z "$PROJECT_LIST" ]]; then
-        read -p "No projects found. Enter new project ID to create: " NEW_PROJECT
-        gcloud projects create "$NEW_PROJECT"
-        PROJECT_ID="$NEW_PROJECT"
-    else
-        echo "Select a project from the list:"
-        select proj in $PROJECT_LIST; do
-            PROJECT_ID="$proj"
+    # Prompt user to manually enter project ID
+    while true; do
+        read -p "Enter GCP Project ID (or leave empty to select from list): " PROJECT_ID
+        if [[ -n "$PROJECT_ID" ]]; then
             break
-        done
-    fi
+        fi
+        echo "Project ID cannot be empty. Please try again."
+    done
 
-    gcloud config set project "$PROJECT_ID"
+    # No gcloud commands inside Cloud Run container
     log "Using GCP project: $PROJECT_ID"
 }
-
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
     select_region
