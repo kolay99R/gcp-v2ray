@@ -44,7 +44,7 @@ select_cpu() {
     while true; do
         read -p "Select CPU (1-4): " cpu_choice
         case $cpu_choice in
-            1|"" ) CPU="1"; break;;
+            1) CPU="1"; break;;
             2) CPU="2"; break;;
             3) CPU="4"; break;;
             4) CPU="8"; break;;
@@ -65,7 +65,7 @@ select_memory() {
     while true; do
         read -p "Select memory (1-6): " memory_choice
         case $memory_choice in
-            1|"" ) MEMORY="512Mi"; break;;
+            1) MEMORY="512Mi"; break;;
             2) MEMORY="1Gi"; break;;
             3) MEMORY="2Gi"; break;;
             4) MEMORY="4Gi"; break;;
@@ -93,7 +93,7 @@ select_region() {
     while true; do
         read -p "Select region (1-8): " region_choice
         case $region_choice in
-            1|"" ) REGION="us-central1"; break;;
+            1) REGION="us-central1"; break;;
             2) REGION="us-west1"; break;;
             3) REGION="us-east1"; break;;
             4) REGION="europe-west1"; break;;
@@ -107,7 +107,7 @@ select_region() {
     info "Selected region: $REGION"
 }
 
-# ===== Telegram =====
+# ===== Telegram configuration =====
 select_telegram_destination() {
     echo; info "=== Telegram Destination ==="
     echo "1. Channel"
@@ -117,7 +117,7 @@ select_telegram_destination() {
     while true; do
         read -p "Select destination (1-4): " telegram_choice
         case $telegram_choice in
-            1|"" ) TELEGRAM_DESTINATION="channel"; break;;
+            1) TELEGRAM_DESTINATION="channel"; break;;
             2) TELEGRAM_DESTINATION="bot"; break;;
             3) TELEGRAM_DESTINATION="both"; break;;
             4) TELEGRAM_DESTINATION="none"; break;;
@@ -148,12 +148,13 @@ get_telegram_ids() {
     fi
     if [[ "$TELEGRAM_DESTINATION" == "channel" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         while true; do
-            read -p "Enter Telegram Channel ID (-100…): " TELEGRAM_CHANNEL_ID
+            read -p "Enter Telegram Channel ID (number with -100 prefix): " TELEGRAM_CHANNEL_ID
             validate_channel_id "$TELEGRAM_CHANNEL_ID" && break
         done
     fi
 }
 
+# ===== User input =====
 get_user_input() {
     echo; info "=== Service Configuration ==="
     while true; do read -p "Enter service name: " SERVICE_NAME; [[ -n "$SERVICE_NAME" ]] && break; done
@@ -170,8 +171,10 @@ get_user_input() {
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_telegram_ids
 }
 
+# ===== Telegram send =====
 send_to_telegram() {
     local chat_id="$1"; local message="$2"; local dest_type="$3"
+
     local keyboard=$(cat <<EOF
 {"inline_keyboard":[
   [{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}]
@@ -181,60 +184,38 @@ EOF
     response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" \
         -d "{\"chat_id\":\"${chat_id}\",\"text\":\"${message}\",\"parse_mode\":\"HTML\",\"disable_web_page_preview\":true,\"reply_markup\":$keyboard}" \
         "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage")
+
     if [[ "${response: -3}" == "200" ]]; then
-        log "✅ Sent to Telegram ($dest_type) successfully."
+        if [[ "$dest_type" == "bot" ]]; then
+            log "✅ Sent to your Telegram bot successfully."
+        elif [[ "$dest_type" == "channel" ]]; then
+            log "✅ Sent to Telegram channel successfully."
+        fi
     else
         error "❌ Telegram send failed: ${response}"
     fi
 }
 
-# ===== Auto Project Check =====
-check_or_select_project() {
-    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
-    if [[ -z "$PROJECT_ID" ]]; then
-        error "❌ No GCP project is set. Please run:"
-        echo "   gcloud config set project <PROJECT_ID>"
-        exit 1
-    fi
-    log "🟢 Using GCP project: $PROJECT_ID"
-}
-
 # ===== Main deployment =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
-
-    # ✅ Auto project check
-    check_or_select_project
-
     select_region
     select_cpu
     select_memory
     select_telegram_destination
     get_user_input
 
-    # ===== Preview times =====
-    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
-    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
+    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
+    if [[ -z "$PROJECT_ID" ]]; then
+        error "No GCP project is set. Run: gcloud config set project <PROJECT_ID>"
+        exit 1
+    fi
 
-    # ===== Confirm deploy =====
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}💬 Confirm Deployment${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Project:${NC} ${PROJECT_ID}"
-    echo -e "${YELLOW}Service:${NC} ${SERVICE_NAME}"
-    echo -e "${YELLOW}Region:${NC} ${REGION}"
-    echo -e "${YELLOW}CPU:${NC} ${CPU} | ${YELLOW}Memory:${NC} ${MEMORY}"
-    echo -e "${YELLOW}Domain:${NC} ${HOST_DOMAIN}"
-    echo -e "${YELLOW}Start:${NC} ${START_TIME}"
-    echo -e "${YELLOW}End:${NC}   ${END_TIME}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    read -rp "Continue? (y/n) [default: y]: " CONFIRM
-    CONFIRM=${CONFIRM:-y}
-    [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo "Deployment canceled"; exit 0; }
+    log "Starting deployment for project: $PROJECT_ID"
 
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
 
-    [[ -d "gcp-v2ray" ]] && rm -rf gcp-v2ray
+    if [[ -d "gcp-v2ray" ]]; then rm -rf gcp-v2ray; fi
     git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
     cd gcp-v2ray
 
@@ -251,23 +232,24 @@ main() {
 
     SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
+
     START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
     END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
 
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
     MESSAGE=$(cat <<EOF
-<blockquote><b>MYTEL GCP VLESS DEPLOYMENT</b></blockquote>
+<blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-🌍 <b>Service:</b> <code>${SERVICE_NAME}</code>
-📦 <b>Region:</b> <code>${REGION}</code>
-⚙️ <b>Resources:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
-🔗 <b>Domain:</b> <code>${DOMAIN}</code>
+🌍<b> Service:</b> <code>${SERVICE_NAME}</code>
+📦<b> Region:</b> <code>${REGION}</code>
+⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
+🔗<b> Domain:</b> <code>${DOMAIN}</code>
 ━━━━━━━━━━━━━━━━━━━━
 <blockquote><b>GCP V2Ray Access Key</b></blockquote>
 <pre><code>${VLESS_LINK}</code></pre>
-<blockquote>🕒 <b>Start:</b> ${START_TIME}
-🕔 <b>End:</b>   ${END_TIME}</blockquote>
+<blockquote>🕒<b> Start:</b> ${START_TIME}
+🕔<b> End:</b>   ${END_TIME}</blockquote>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
