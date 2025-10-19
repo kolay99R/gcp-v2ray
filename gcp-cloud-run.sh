@@ -282,25 +282,17 @@ main() {
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
     MESSAGE=$(cat <<EOF
-<b>✨ MYTEL GCP VLESS AUTO DEPLOY ✨</b>
+<blockquote><b>MYTEL GCP VLESS DEPLOYMENT</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote>
 🌍 <b>Service:</b> <code>${SERVICE_NAME}</code>
 📦 <b>Region:</b> <code>${REGION}</code>
 ⚙️ <b>Resources:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
 🔗 <b>Domain:</b> <code>${DOMAIN}</code>
-</blockquote>
-
-<b>🔑 V2Ray Access Key</b>
-<pre><code>${VLESS_LINK}</code></pre>
-
-<blockquote>
-🕒 <b>Start:</b> ${START_TIME}
-🕔 <b>End:</b>   ${END_TIME}
-</blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-<b>✅ Deployment:</b> <code>Successful</code>
-<b>🚀 Project:</b> <code>${PROJECT_ID}</code>
+<blockquote><b>GCP V2Ray Access Key</b></blockquote>
+<pre><code>${VLESS_LINK}</code></pre>
+<blockquote>🕒 <b>Start:</b> ${START_TIME}
+🕔 <b>End:</b>   ${END_TIME}</blockquote>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
