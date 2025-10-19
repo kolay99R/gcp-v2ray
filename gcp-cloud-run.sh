@@ -195,15 +195,57 @@ EOF
         error "❌ Telegram send failed: ${response}"
     fi
 }
+# ===== Ensure GCP Project =====
+ensure_gcp_project() {
+    info "=== Checking GCP Project Configuration ==="
+    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
 
+    if [[ -z "$PROJECT_ID" ]]; then
+        warn "⚠️  No active GCP project is set in your config."
+        echo
+        echo -e "${BLUE}Available projects:${NC}"
+        gcloud projects list --format="table(projectId,name)" 2>/dev/null || true
+        echo
+
+        while true; do
+            read -p "Enter a valid GCP Project ID to use: " PROJECT_ID
+            if gcloud projects describe "$PROJECT_ID" >/dev/null 2>&1; then
+                echo -e "${GREEN}✅ Valid project detected: ${PROJECT_ID}${NC}"
+                break
+            else
+                echo -e "${RED}❌ Invalid project ID. Please try again.${NC}"
+            fi
+        done
+
+        echo
+        echo -e "${YELLOW}Do you want to set ${PROJECT_ID} as your default project? (y/n) [default: y]${NC}"
+        read -rp "> " SET_DEFAULT
+        SET_DEFAULT=${SET_DEFAULT:-y}
+        if [[ "$SET_DEFAULT" =~ ^[Yy]$ ]]; then
+            gcloud config set project "$PROJECT_ID" --quiet
+            log "✅ Default project set: ${PROJECT_ID}"
+        else
+            warn "Skipping default config. Project will be used for this session only."
+        fi
+    else
+        log "🟢 Current active project: ${PROJECT_ID}"
+    fi
+}
 # ===== Main deployment =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
+    
+    # ✅ Ensure project
+    ensure_gcp_project
+    
     select_region
     select_cpu
     select_memory
     select_telegram_destination
     get_user_input
+
+    log "Starting deployment for project: $PROJECT_ID"
+    ...
 
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
     if [[ -z "$PROJECT_ID" ]]; then
