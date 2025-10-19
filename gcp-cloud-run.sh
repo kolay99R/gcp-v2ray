@@ -231,6 +231,7 @@ ensure_gcp_project() {
         log "🟢 Current active project: ${PROJECT_ID}"
     fi
 }
+
 # ===== Main deployment =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
@@ -243,15 +244,6 @@ main() {
     select_memory
     select_telegram_destination
     get_user_input
-
-    log "Starting deployment for project: $PROJECT_ID"
-    ...
-
-    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
-    if [[ -z "$PROJECT_ID" ]]; then
-        error "No GCP project is set. Run: gcloud config set project <PROJECT_ID>"
-        exit 1
-    fi
 
     log "Starting deployment for project: $PROJECT_ID"
 
