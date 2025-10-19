@@ -241,15 +241,15 @@ main() {
     MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
-🌍<b> Service:</b> <code>${SERVICE_NAME}</code>
-📦<b> Region:</b> <code>${REGION}</code>
+📌<b> Service:</b> <code>${SERVICE_NAME}</code>
+🌍<b> Region:</b> <code>${REGION}</code>
 ⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
 🔗<b> Domain:</b> <code>${DOMAIN}</code>
 ━━━━━━━━━━━━━━━━━━━━
 <blockquote><b>GCP V2Ray Access Key</b></blockquote>
 <pre><code>${VLESS_LINK}</code></pre>
-<blockquote>🕒<b> Start:</b> ${START_TIME}
-🕔<b> End:</b>   ${END_TIME}</blockquote>
+<blockquote>⏳<b> Start:</b> ${START_TIME}
+⏰<b> End:</b>   ${END_TIME}</blockquote>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
