@@ -213,14 +213,50 @@ main() {
 
     log "Starting deployment for project: $PROJECT_ID"
 
+    # ===== Time preview (before deploy) =====
+    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
+    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
+
+    # ===== Fancy confirmation box =====
+    echo
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}💬 Confirm Deployment${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Project:${NC}   ${PROJECT_ID}"
+    echo -e "${YELLOW}Service:${NC}   ${SERVICE_NAME}"
+    echo -e "${YELLOW}Region:${NC}    ${REGION}"
+    echo -e "${YELLOW}CPU:${NC}       ${CPU} | ${YELLOW}Memory:${NC} ${MEMORY}"
+    echo -e "${YELLOW}Domain:${NC}    ${HOST_DOMAIN:-Not set}"
+    echo -e "${YELLOW}Timezone:${NC}  Asia/Yangon (MMT)"
+    echo -e "${YELLOW}🕒 Start Time:${NC} ${START_TIME}"
+    echo -e "${YELLOW}🕔 End Time:${NC}   ${END_TIME}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Do you want to continue with deployment? (y/n) [default: y]${NC}"
+    read -rp "> " CONFIRM
+    CONFIRM=${CONFIRM:-y}
+
+    if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+        echo -e "${GREEN}✅ Confirmation received. Proceeding with deployment...${NC}"
+    else
+        echo -e "${RED}❌ Deployment canceled by user.${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        exit 0
+    fi
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    sleep 1
+
+    # ===== Enable required APIs =====
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
 
+    # ===== Prepare source =====
     if [[ -d "gcp-v2ray" ]]; then rm -rf gcp-v2ray; fi
     git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
     cd gcp-v2ray
 
+    # ===== Build container image =====
     gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image --quiet
 
+    # ===== Deploy to Cloud Run =====
     gcloud run deploy ${SERVICE_NAME} \
         --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
         --platform managed \
@@ -230,26 +266,41 @@ main() {
         --memory ${MEMORY} \
         --quiet
 
-    SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
+    # ===== Retrieve service info =====
+    SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} \
+        --region ${REGION} \
+        --format 'value(status.url)' \
+        --quiet)
+
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
 
+    # ===== Time info =====
     START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
     END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
 
+    # ===== VLESS link =====
     VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
 
     MESSAGE=$(cat <<EOF
-<blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
+<b>✨ MYTEL GCP VLESS AUTO DEPLOY ✨</b>
 ━━━━━━━━━━━━━━━━━━━━
-<b>• Service:</b> <code>${SERVICE_NAME}</code>
-<b>• Region:</b> <code>${REGION}</code>
-<b>• Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
-<b>• Domain:</b> <code>${DOMAIN}</code>
-━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>GCP V2Ray Access Key</b></blockquote>
+<blockquote>
+🌍 <b>Service:</b> <code>${SERVICE_NAME}</code>
+📦 <b>Region:</b> <code>${REGION}</code>
+⚙️ <b>Resources:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
+🔗 <b>Domain:</b> <code>${DOMAIN}</code>
+</blockquote>
+
+<b>🔑 V2Ray Access Key</b>
 <pre><code>${VLESS_LINK}</code></pre>
-<blockquote><b>• Start:</b> ${START_TIME}
-<b>• End:</b>   ${END_TIME}</blockquote>
+
+<blockquote>
+🕒 <b>Start:</b> ${START_TIME}
+🕔 <b>End:</b>   ${END_TIME}
+</blockquote>
+━━━━━━━━━━━━━━━━━━━━
+<b>✅ Deployment:</b> <code>Successful</code>
+<b>🚀 Project:</b> <code>${PROJECT_ID}</code>
 EOF
 )
     echo "$MESSAGE" > deployment-info.txt
