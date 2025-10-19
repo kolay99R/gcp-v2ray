@@ -171,57 +171,65 @@ get_user_input() {
     [[ "$TELEGRAM_DESTINATION" != "none" ]] && get_telegram_ids
 }
 
-# ===== Telegram send =====
-send_to_telegram() {
-    local chat_id="$1"; local message="$2"; local dest_type="$3"
-
-    local keyboard=$(cat <<EOF
-{"inline_keyboard":[
-  [{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}]
-]}
-EOF
-)
-    response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" \
-        -d "{\"chat_id\":\"${chat_id}\",\"text\":\"${message}\",\"parse_mode\":\"HTML\",\"disable_web_page_preview\":true,\"reply_markup\":$keyboard}" \
-        "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage")
-
-    if [[ "${response: -3}" == "200" ]]; then
-        if [[ "$dest_type" == "bot" ]]; then
-            log "✅ Sent to your Telegram bot successfully."
-        elif [[ "$dest_type" == "channel" ]]; then
-            log "✅ Sent to Telegram channel successfully."
-        fi
-    else
-        error "❌ Telegram send failed: ${response}"
-    fi
-}
+# ===== Project ID =====
 check_or_select_project() {
-    echo
-    info "=== GCP Project Configuration ==="
-
-    # Ask if user wants to use an existing project
-    if [[ -n "${PROJECT_ID:-}" ]]; then
-        echo "Current GCP project: $PROJECT_ID"
-        read -p "Do you want to use this project? (Y/n): " USE_CURRENT
-        USE_CURRENT=${USE_CURRENT:-Y}
-        if [[ "$USE_CURRENT" =~ ^[Yy]$ ]]; then
-            log "Using existing project: $PROJECT_ID"
-            return
-        fi
-    fi
-
-    # Prompt user to manually enter project ID
+    echo; info "=== GCP Project Configuration ==="
     while true; do
-        read -p "Enter GCP Project ID (or leave empty to select from list): " PROJECT_ID
-        if [[ -n "$PROJECT_ID" ]]; then
-            break
-        fi
-        echo "Project ID cannot be empty. Please try again."
+        read -p "Enter GCP Project ID: " PROJECT_ID
+        [[ -n "$PROJECT_ID" ]] && break || echo "Project ID cannot be empty."
     done
-
-    # No gcloud commands inside Cloud Run container
     log "Using GCP project: $PROJECT_ID"
 }
+
+# ===== Deployment Preview & Command Print =====
+prepare_deployment() {
+    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
+    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
+
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    info "💡 Deployment preview:"
+    echo -e "Project: ${YELLOW}${PROJECT_ID}${NC}"
+    echo -e "Service: ${YELLOW}${SERVICE_NAME}${NC}"
+    echo -e "Region: ${YELLOW}${REGION}${NC}"
+    echo -e "CPU | Memory: ${YELLOW}${CPU} CPU | ${MEMORY}${NC}"
+    echo -e "Domain: ${YELLOW}${HOST_DOMAIN}${NC}"
+    echo -e "Start: ${YELLOW}${START_TIME}${NC}"
+    echo -e "End:   ${YELLOW}${END_TIME}${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    read -rp "Continue? (y/n) [default: y]: " CONFIRM
+    CONFIRM=${CONFIRM:-y}
+    [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo "Deployment canceled"; exit 0; }
+
+    # ===== Print ready-to-run commands =====
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    info "⚠️ Cloud Run cannot run 'gcloud' inside the container."
+    info "Copy and paste the following commands in Cloud Shell or local terminal to deploy:"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo -e "${YELLOW}# Enable required services${NC}"
+    echo "gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet"
+
+    echo -e "${YELLOW}# Clone repository${NC}"
+    echo "[[ -d \"gcp-v2ray\" ]] && rm -rf gcp-v2ray"
+    echo "git clone https://github.com/kolay99R/gcp-v2ray.git"
+    echo "cd gcp-v2ray"
+
+    echo -e "${YELLOW}# Deploy Cloud Run service${NC}"
+    echo "gcloud run deploy ${SERVICE_NAME} \\"
+    echo "    --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \\"
+    echo "    --platform managed \\"
+    echo "    --region ${REGION} \\"
+    echo "    --allow-unauthenticated \\"
+    echo "    --cpu ${CPU} \\"
+    echo "    --memory ${MEMORY} \\"
+    echo "    --quiet"
+
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    info "✅ Deployment commands ready. Run them in Cloud Shell or local terminal."
+}
+
+# ===== Main =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
     select_region
@@ -230,92 +238,7 @@ main() {
     select_telegram_destination
     get_user_input
     check_or_select_project
-
-    # ===== Preview times =====
-    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
-    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
-
-    # ===== Confirm deploy =====
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}💬 Confirm Deployment${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Project:${NC} ${PROJECT_ID}"
-    echo -e "${YELLOW}Service:${NC} ${SERVICE_NAME}"
-    echo -e "${YELLOW}Region:${NC} ${REGION}"
-    echo -e "${YELLOW}CPU:${NC} ${CPU} | ${YELLOW}Memory:${NC} ${MEMORY}"
-    echo -e "${YELLOW}Domain:${NC} ${HOST_DOMAIN}"
-    echo -e "${YELLOW}Start:${NC} ${START_TIME}"
-    echo -e "${YELLOW}End:${NC}   ${END_TIME}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    read -rp "Continue? (y/n) [default: y]: " CONFIRM
-    CONFIRM=${CONFIRM:-y}
-    [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo "Deployment canceled"; exit 0; }
-    
-    gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
-
-    [[ -d "gcp-v2ray" ]] && rm -rf gcp-v2ray
-    git clone https://github.com/kolay99R/gcp-v2ray.git
-    cd gcp-v2ray
-    gcloud run deploy ${SERVICE_NAME} \
-        --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
-        --platform managed \
-        --region ${REGION} \
-        --allow-unauthenticated \
-        --cpu ${CPU} \
-        --memory ${MEMORY} \
-        --quiet
-
-    SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
-    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
-
-    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
-    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
-
-    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
-
-    MESSAGE=$(cat <<EOF
-<blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
-━━━━━━━━━━━━━━━━━━━━
-📦<b> Service:</b> <code>${SERVICE_NAME}</code>
-🌍<b> Region:</b> <code>${REGION}</code>
-⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
-🔗<b> Domain:</b> <code>${DOMAIN}</code>
-━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>GCP V2Ray Access Key</b></blockquote>
-<pre><code>${VLESS_LINK}</code></pre>
-<blockquote>⏳<b> Start:</b> ${START_TIME}
-⏰<b> End:</b>   ${END_TIME}</blockquote>
-EOF
-)
-    echo "$MESSAGE" > deployment-info.txt
-    info "Deployment info saved to deployment-info.txt"
-
-    # === ✅ Console Summary ===
-echo
-echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
-echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
-echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
-echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
-echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${RED}VLESS LINK:${NC}"
-echo -e "${GREEN}${VLESS_LINK}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
-echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo
-log "✅ Deployment completed successfully! 🎉🎉"
-log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
-
-    if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
-        send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
-    fi
-    if [[ "$TELEGRAM_DESTINATION" == "channel" || "$TELEGRAM_DESTINATION" == "both" ]]; then
-        send_to_telegram "$TELEGRAM_CHANNEL_ID" "$MESSAGE" "channel"
-    fi
+    prepare_deployment
 }
 
 main "$@"
