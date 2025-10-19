@@ -188,34 +188,29 @@ EOF
     fi
 }
 
+# ===== Auto Project Check =====
 check_or_select_project() {
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
     if [[ -z "$PROJECT_ID" ]]; then
-        echo; info "No GCP project set. Please select or create one:"
-        PROJECT_LIST=$(gcloud projects list --format="value(projectId)")
-        if [[ -z "$PROJECT_LIST" ]]; then
-            read -p "No projects found. Enter new project ID to create: " NEW_PROJECT
-            gcloud projects create "$NEW_PROJECT"
-            PROJECT_ID="$NEW_PROJECT"
-        else
-            select proj in $PROJECT_LIST; do
-                PROJECT_ID="$proj"
-                break
-            done
-        fi
-        gcloud config set project "$PROJECT_ID"
+        error "❌ No GCP project is set. Please run:"
+        echo "   gcloud config set project <PROJECT_ID>"
+        exit 1
     fi
-    log "Using GCP project: $PROJECT_ID"
+    log "🟢 Using GCP project: $PROJECT_ID"
 }
 
+# ===== Main deployment =====
 main() {
     info "=== GCP Cloud Run V2Ray Deployment ==="
+
+    # ✅ Auto project check
+    check_or_select_project
+
     select_region
     select_cpu
     select_memory
     select_telegram_destination
     get_user_input
-    check_or_select_project
 
     # ===== Preview times =====
     START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
