@@ -196,22 +196,51 @@ EOF
     fi
 }
 check_or_select_project() {
+    # Get current project, if any
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
-    if [[ -z "$PROJECT_ID" ]]; then
-        echo; info "No GCP project set. Please select or create one:"
-        PROJECT_LIST=$(gcloud projects list --format="value(projectId)")
-        if [[ -z "$PROJECT_LIST" ]]; then
-            read -p "No projects found. Enter new project ID to create: " NEW_PROJECT
-            gcloud projects create "$NEW_PROJECT"
-            PROJECT_ID="$NEW_PROJECT"
-        else
-            select proj in $PROJECT_LIST; do
-                PROJECT_ID="$proj"
-                break
-            done
+
+    echo
+    info "=== GCP Project Configuration ==="
+
+    if [[ -n "$PROJECT_ID" ]]; then
+        echo "Current GCP project: $PROJECT_ID"
+        read -p "Do you want to use this project? (Y/n): " USE_CURRENT
+        USE_CURRENT=${USE_CURRENT:-Y}
+        if [[ "$USE_CURRENT" =~ ^[Yy]$ ]]; then
+            log "Using existing project: $PROJECT_ID"
+            return
+        fi
+    fi
+
+    # Ask user to manually enter project ID
+    read -p "Enter GCP Project ID (or leave empty to select from list): " MANUAL_PROJECT
+    if [[ -n "$MANUAL_PROJECT" ]]; then
+        PROJECT_ID="$MANUAL_PROJECT"
+        # Check if project exists, if not create it
+        if ! gcloud projects describe "$PROJECT_ID" &>/dev/null; then
+            echo "Project does not exist. Creating project $PROJECT_ID..."
+            gcloud projects create "$PROJECT_ID"
         fi
         gcloud config set project "$PROJECT_ID"
+        log "Using GCP project: $PROJECT_ID"
+        return
     fi
+
+    # If manual entry is empty, show selection from existing projects
+    PROJECT_LIST=$(gcloud projects list --format="value(projectId)")
+    if [[ -z "$PROJECT_LIST" ]]; then
+        read -p "No projects found. Enter new project ID to create: " NEW_PROJECT
+        gcloud projects create "$NEW_PROJECT"
+        PROJECT_ID="$NEW_PROJECT"
+    else
+        echo "Select a project from the list:"
+        select proj in $PROJECT_LIST; do
+            PROJECT_ID="$proj"
+            break
+        done
+    fi
+
+    gcloud config set project "$PROJECT_ID"
     log "Using GCP project: $PROJECT_ID"
 }
 
@@ -247,7 +276,7 @@ main() {
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
 
     [[ -d "gcp-v2ray" ]] && rm -rf gcp-v2ray
-    git clone https://github.com/andrewzinkyaw/gcp-v2ray.git
+    git clone https://github.com/kolay99R/gcp-v2ray.git
     cd gcp-v2ray
     gcloud run deploy ${SERVICE_NAME} \
         --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
