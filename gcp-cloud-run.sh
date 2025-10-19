@@ -283,24 +283,25 @@ EOF
     echo "$MESSAGE" > deployment-info.txt
     info "Deployment info saved to deployment-info.txt"
 
-    # === ✅ Console Summary (with colors) ===
+    # === ✅ Console Summary ===
 echo
 echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
-echo -e "${CYAN}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
-echo -e "${CYAN}Region:${NC}  ${GREEN}${REGION}${NC}"
-echo -e "${CYAN}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
-echo -e "${CYAN}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
+echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
+echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
+echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
+echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
+echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}VLESS LINK:${NC} ${MAGENTA}${VLESS_LINK}${NC}"
+echo -e "${RED}VLESS LINK:${NC}"
+echo -e "${GREEN}${VLESS_LINK}${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}Start:${NC} ${GREEN}${START_TIME}${NC}"
-echo -e "${CYAN}End:  ${NC} ${GREEN}${END_TIME}${NC}"
+echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
+echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo
-log "✅ ${GREEN}Deployment completed successfully! 🎉🎉${NC}"
-log "🌍 ${BLUE}Service URL:${NC} ${GREEN}${SERVICE_URL}${NC}"
+log "✅ Deployment completed successfully! 🎉🎉"
+log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
 
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
