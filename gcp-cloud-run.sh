@@ -284,8 +284,7 @@ MESSAGE=$(cat <<EOF
 <pre><code>${VLESS_WS_LINK}</code></pre>
 <blockquote><b>GCP Trojan Access Key</b></blockquote>
 <pre><code>${TROJAN_WS_LINK}</code></pre>
-<blockquote>⏳<b> Start:</b> ${START_TIME}
-⏰<b> End:</b>   ${END_TIME}</blockquote>
+<blockquote>⏰<b>End time:</b>${END_TIME}</blockquote>
 EOF
 )
 echo "$MESSAGE" > deployment-info.txt
