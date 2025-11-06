@@ -268,11 +268,11 @@ main() {
     SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
 
-    # ===== VLESS Links =====
+    # ===== VLESS+TROJAN Links =====
     VLESS_WS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
-    VLESS_GRPC_LINK="vless://${UUID}@${HOST_DOMAIN}:443?mode=gun&security=tls&encryption=none&type=grpc&serviceName=grpc-${SERVICE_NAME}&fp=randomized&sni=${DOMAIN}#${SERVICE_NAME}-gRPC"
+TROJAN_WS_LINK="trojan://${TROJAN_PASSWORD}@${HOST_DOMAIN}:443?path=%2Ftrojan-ws&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&type=ws&host=${DOMAIN}&sni=${DOMAIN}#${SERVICE_NAME}-TrojanWS"
 
-    MESSAGE=$(cat <<EOF
+MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP V2RAY Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
 📦<b> Service:</b> <code>${SERVICE_NAME}</code>
@@ -280,38 +280,37 @@ main() {
 ⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
 🔗<b> Domain:</b> <code>${DOMAIN}</code>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>Vless WS Access Key</b></blockquote>
+<blockquote><b>GCP Vless Access Key</b></blockquote>
 <pre><code>${VLESS_WS_LINK}</code></pre>
-
-<blockquote><b>Vless GRPC Access Key</b></blockquote>
-<pre><code>${VLESS_GRPC_LINK}</code></pre>
+<blockquote><b>GCP Trojan Access Key</b></blockquote>
+<pre><code>${TROJAN_WS_LINK}</code></pre>
 <blockquote>⏳<b> Start:</b> ${START_TIME}
 ⏰<b> End:</b>   ${END_TIME}</blockquote>
 EOF
 )
-    echo "$MESSAGE" > deployment-info.txt
-    info "Deployment info saved to deployment-info.txt"
+echo "$MESSAGE" > deployment-info.txt
+info "Deployment info saved to deployment-info.txt"
 
-    # === ✅ Console Summary ===
-    echo
-    echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
-    echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
-    echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
-    echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
-    echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${RED}VLESS Links:${NC}"
-    echo -e "${GREEN}WS:   ${VLESS_WS_LINK}${NC}"
-    echo -e "${GREEN}gRPC: ${VLESS_GRPC_LINK}${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
-    echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo
-    log "✅ Deployment completed successfully! 🎉🎉"
-    log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
+# === ✅ Console Summary ===
+echo
+echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
+echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
+echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
+echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
+echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${RED}VLESS / Trojan Links:${NC}"
+echo -e "${GREEN}VLESS (WS):   ${VLESS_WS_LINK}${NC}"
+echo -e "${GREEN}Trojan (WS):  ${TROJAN_WS_LINK}${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
+echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo
+log "✅ Deployment completed successfully! 🎉🎉"
+log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
 
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
