@@ -273,16 +273,18 @@ main() {
     VLESS_GRPC_LINK="vless://${UUID}@${HOST_DOMAIN}:443?mode=gun&security=tls&encryption=none&type=grpc&serviceName=grpc-${SERVICE_NAME}&fp=randomized&sni=${DOMAIN}#${SERVICE_NAME}-gRPC"
 
     MESSAGE=$(cat <<EOF
-<blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
+<blockquote><b>MYTEL GCP V2RAY Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
 📦<b> Service:</b> <code>${SERVICE_NAME}</code>
 🌍<b> Region:</b> <code>${REGION}</code>
 ⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
 🔗<b> Domain:</b> <code>${DOMAIN}</code>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>GCP V2Ray Access Keys</b></blockquote>
-<pre><code>WS:   ${VLESS_WS_LINK}
-gRPC: ${VLESS_GRPC_LINK}</code></pre>
+<blockquote><b>Vless WS Access Key</b></blockquote>
+<pre><code>${VLESS_WS_LINK}</code></pre>
+
+<blockquote><b>Vless GRPC Access Key</b></blockquote>
+<pre><code>${VLESS_GRPC_LINK}</code></pre>
 <blockquote>⏳<b> Start:</b> ${START_TIME}
 ⏰<b> End:</b>   ${END_TIME}</blockquote>
 EOF
