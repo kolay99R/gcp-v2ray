@@ -195,6 +195,7 @@ EOF
         error "❌ Telegram send failed: ${response}"
     fi
 }
+
 check_or_select_project() {
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
     if [[ -z "$PROJECT_ID" ]]; then
@@ -247,30 +248,29 @@ main() {
     gcloud services enable cloudbuild.googleapis.com run.googleapis.com iam.googleapis.com --quiet
 
     # ===== Clone repo =====
-[[ -d "gcp-v2ray" ]] && rm -rf gcp-v2ray
-git clone https://github.com/kolay99R/gcp-v2ray.git
-cd gcp-v2ray
+    [[ -d "gcp-v2ray" ]] && rm -rf gcp-v2ray
+    git clone https://github.com/kolay99R/gcp-v2ray.git
+    cd gcp-v2ray
 
-# ===== Build image =====
-gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image
+    # ===== Build image =====
+    gcloud builds submit --tag gcr.io/${PROJECT_ID}/gcp-v2ray-image
 
-# ===== Deploy Cloud Run =====
-gcloud run deploy ${SERVICE_NAME} \
-    --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
-    --platform managed \
-    --region ${REGION} \
-    --allow-unauthenticated \
-    --cpu ${CPU} \
-    --memory ${MEMORY} \
-    --quiet
+    # ===== Deploy Cloud Run =====
+    gcloud run deploy ${SERVICE_NAME} \
+        --image gcr.io/${PROJECT_ID}/gcp-v2ray-image \
+        --platform managed \
+        --region ${REGION} \
+        --allow-unauthenticated \
+        --cpu ${CPU} \
+        --memory ${MEMORY} \
+        --quiet
 
     SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
     DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
 
-    START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
-    END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
-
-    VLESS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
+    # ===== VLESS Links =====
+    VLESS_WS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
+    VLESS_GRPC_LINK="vless://${UUID}@${HOST_DOMAIN}:443?mode=gun&security=tls&encryption=none&type=grpc&serviceName=grpc-${SERVICE_NAME}&fp=randomized&sni=${DOMAIN}#${SERVICE_NAME}-gRPC"
 
     MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP VLESS Deployment</b></blockquote>
@@ -280,8 +280,9 @@ gcloud run deploy ${SERVICE_NAME} \
 ⚙️<b> Resource:</b> <code>${CPU} CPU | ${MEMORY} RAM</code>
 🔗<b> Domain:</b> <code>${DOMAIN}</code>
 ━━━━━━━━━━━━━━━━━━━━
-<blockquote><b>GCP V2Ray Access Key</b></blockquote>
-<pre><code>${VLESS_LINK}</code></pre>
+<blockquote><b>GCP V2Ray Access Keys</b></blockquote>
+<pre><code>WS:   ${VLESS_WS_LINK}
+gRPC: ${VLESS_GRPC_LINK}</code></pre>
 <blockquote>⏳<b> Start:</b> ${START_TIME}
 ⏰<b> End:</b>   ${END_TIME}</blockquote>
 EOF
@@ -290,24 +291,25 @@ EOF
     info "Deployment info saved to deployment-info.txt"
 
     # === ✅ Console Summary ===
-echo
-echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
-echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
-echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
-echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
-echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${RED}VLESS LINK:${NC}"
-echo -e "${GREEN}${VLESS_LINK}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
-echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo
-log "✅ Deployment completed successfully! 🎉🎉"
-log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
+    echo
+    echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
+    echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
+    echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
+    echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
+    echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${RED}VLESS Links:${NC}"
+    echo -e "${GREEN}WS:   ${VLESS_WS_LINK}${NC}"
+    echo -e "${GREEN}gRPC: ${VLESS_GRPC_LINK}${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
+    echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+    log "✅ Deployment completed successfully! 🎉🎉"
+    log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
 
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
