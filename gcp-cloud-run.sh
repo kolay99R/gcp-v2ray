@@ -175,6 +175,12 @@ get_user_input() {
 send_to_telegram() {
     local chat_id="$1"; local message="$2"; local dest_type="$3"
 
+    # If TELEGRAM_BOT_TOKEN is somehow empty, skip
+    if [[ -z "${TELEGRAM_BOT_TOKEN:-}" ]]; then
+        warn "Telegram bot token not set — skipping send."
+        return 0
+    fi
+
     local keyboard=$(cat <<EOF
 {"inline_keyboard":[
   [{"text":"$CHANNEL_NAME","url":"$CHANNEL_URL"}]
@@ -225,6 +231,21 @@ main() {
     get_user_input
     check_or_select_project
 
+    # ===== Ensure TROJAN_PASSWORD exists (avoid unbound variable) =====
+    # If user exported TROJAN_PASSWORD before running script, that value will be used.
+    # Otherwise generate a secure random password. Fallback to uuid if openssl missing.
+    TROJAN_PASSWORD=${TROJAN_PASSWORD:-}
+    if [[ -z "${TROJAN_PASSWORD}" ]]; then
+        if command -v openssl >/dev/null 2>&1; then
+            TROJAN_PASSWORD=$(openssl rand -hex 12)
+        else
+            TROJAN_PASSWORD=$(cat /proc/sys/kernel/random/uuid)
+        fi
+        log "Generated TROJAN_PASSWORD (auto)"
+    else
+        log "Using provided TROJAN_PASSWORD from environment"
+    fi
+
     # ===== Preview times =====
     START_TIME=$(TZ='Asia/Yangon' date +"%d-%m-%Y (%I:%M %p)")
     END_TIME=$(TZ='Asia/Yangon' date -d "+5 hours" +"%d-%m-%Y (%I:%M %p)")
@@ -266,13 +287,13 @@ main() {
         --quiet
 
     SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)' --quiet)
-    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||')
+    DOMAIN=$(echo $SERVICE_URL | sed 's|https://||' || true)
 
     # ===== VLESS+TROJAN Links =====
     VLESS_WS_LINK="vless://${UUID}@${HOST_DOMAIN}:443?path=%2Ftg-%40trenzych&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&host=${DOMAIN}&fp=randomized&type=ws&sni=${DOMAIN}#${SERVICE_NAME}"
-TROJAN_WS_LINK="trojan://${TROJAN_PASSWORD}@${HOST_DOMAIN}:443?path=%2Ftrojan-ws&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&type=ws&host=${DOMAIN}&sni=${DOMAIN}#${SERVICE_NAME}-TrojanWS"
+    TROJAN_WS_LINK="trojan://${TROJAN_PASSWORD}@${HOST_DOMAIN}:443?path=%2Ftrojan-ws&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&type=ws&host=${DOMAIN}&sni=${DOMAIN}#${SERVICE_NAME}-TrojanWS"
 
-MESSAGE=$(cat <<EOF
+    MESSAGE=$(cat <<EOF
 <blockquote><b>MYTEL GCP V2RAY Deployment</b></blockquote>
 ━━━━━━━━━━━━━━━━━━━━
 📦<b> Service:</b> <code>${SERVICE_NAME}</code>
@@ -287,29 +308,29 @@ MESSAGE=$(cat <<EOF
 <blockquote>⏰<b>End time:</b>${END_TIME}</blockquote>
 EOF
 )
-echo "$MESSAGE" > deployment-info.txt
-info "Deployment info saved to deployment-info.txt"
+    echo "$MESSAGE" > deployment-info.txt
+    info "Deployment info saved to deployment-info.txt"
 
-# === ✅ Console Summary ===
-echo
-echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
-echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
-echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
-echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
-echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${RED}VLESS / Trojan Links:${NC}"
-echo -e "${GREEN}VLESS (WS):   ${VLESS_WS_LINK}${NC}"
-echo -e "${GREEN}Trojan (WS):  ${TROJAN_WS_LINK}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
-echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo
-log "✅ Deployment completed successfully! 🎉🎉"
-log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
+    # === ✅ Console Summary ===
+    echo
+    echo -e "${BLUE}=== Deployment Summary (Console) ===${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Project:${NC} ${GREEN}${PROJECT_ID}${NC}"
+    echo -e "${YELLOW}Service:${NC} ${GREEN}${SERVICE_NAME}${NC}"
+    echo -e "${YELLOW}Region:${NC}  ${GREEN}${REGION}${NC}"
+    echo -e "${YELLOW}Resource:${NC} ${GREEN}${CPU} CPU | ${MEMORY} RAM${NC}"
+    echo -e "${YELLOW}Domain:${NC}  ${GREEN}${DOMAIN}${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${RED}VLESS / Trojan Links:${NC}"
+    echo -e "${GREEN}VLESS (WS):   ${VLESS_WS_LINK}${NC}"
+    echo -e "${GREEN}Trojan (WS):  ${TROJAN_WS_LINK}${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Start:${NC} ${GREEN}${START_TIME}${NC}"
+    echo -e "${YELLOW}End:  ${NC} ${GREEN}${END_TIME}${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+    log "✅ Deployment completed successfully! 🎉🎉"
+    log "🌍 Service URL: ${GREEN}${SERVICE_URL}${NC}"
 
     if [[ "$TELEGRAM_DESTINATION" == "bot" || "$TELEGRAM_DESTINATION" == "both" ]]; then
         send_to_telegram "$TELEGRAM_CHAT_ID" "$MESSAGE" "bot"
